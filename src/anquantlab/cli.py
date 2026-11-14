@@ -17,6 +17,13 @@ def build_parser() -> argparse.ArgumentParser:
         description="AnQuantLab - Interactive Quantitative Alpha & Falsification Workbench.",
     )
     parser.add_argument(
+        "command",
+        nargs="?",
+        choices=("serve",),
+        default="serve",
+        help="Optional command alias ('serve' starts the web workbench, default behavior).",
+    )
+    parser.add_argument(
         "--host",
         type=str,
         default=None,

@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from anquantlab import __version__
 from anquantlab.app import create_app
 from anquantlab.catalog import build_catalog
+from anquantlab.cli import build_parser
 from anquantlab.cli import main as cli_main
 from anquantlab.config import Settings, apply_thread_limits, load_settings
 from anquantlab.expr_dsl import FormulaSyntaxError, evaluate_formula
@@ -246,6 +247,12 @@ def test_cli_version_and_ui_zero_emoji_hygiene(capsys: pytest.CaptureFixture[str
     rc = cli_main(["--version"])
     assert rc == 0
     assert __version__ in capsys.readouterr().out
+
+    parser = build_parser()
+    parsed_direct = parser.parse_args(["--port", "8000"])
+    parsed_serve = parser.parse_args(["serve", "--port", "8000"])
+    assert parsed_direct.port == 8000
+    assert parsed_serve.port == 8000 and parsed_serve.command == "serve"
 
     threads = apply_thread_limits(2)
     assert threads == 2
