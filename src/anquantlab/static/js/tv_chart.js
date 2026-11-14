@@ -89,11 +89,20 @@ export class TVDualChart {
     });
 
     if (typeof ResizeObserver !== "undefined") {
-      this.ro = new ResizeObserver(() => this.render());
+      this._rafId = null;
+      this.ro = new ResizeObserver(() => this._scheduleRender());
       if (this.canvas.parentElement) {
         this.ro.observe(this.canvas.parentElement);
       }
     }
+  }
+
+  _scheduleRender() {
+    if (this._rafId !== null) return;
+    this._rafId = window.requestAnimationFrame(() => {
+      this._rafId = null;
+      this.render();
+    });
   }
 
   setData(series) {
@@ -127,14 +136,14 @@ export class TVDualChart {
     if (!parent) return;
     const width = parent.clientWidth;
     const height = parent.clientHeight;
-    if (width <= 0 || height <= 0) return;
+    if (width < 40 || height < 40) return;
 
     const dpr = window.devicePixelRatio || 1;
-    if (this.canvas.width !== Math.floor(width * dpr) || this.canvas.height !== Math.floor(height * dpr)) {
-      this.canvas.width = Math.floor(width * dpr);
-      this.canvas.height = Math.floor(height * dpr);
-      this.canvas.style.width = `${width}px`;
-      this.canvas.style.height = `${height}px`;
+    const targetW = Math.floor(width * dpr);
+    const targetH = Math.floor(height * dpr);
+    if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
+      this.canvas.width = targetW;
+      this.canvas.height = targetH;
     }
 
     const ctx = this.ctx;

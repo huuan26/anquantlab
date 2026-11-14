@@ -47,8 +47,8 @@
             <path d="M3 12h18" />
             <path d="M12 3a14.5 14.5 0 010 18 14.5 14.5 0 010-18z" />
           </svg>
-          <span>Public Data</span>
-          <span class="tv-kbd num">0-Key</span>
+          <span>Public<span class="tv-hide-compact"> Data</span></span>
+          <span class="tv-kbd tv-kbd-hint num">0-Key</span>
         </button>
 
         <span class="tv-sep" aria-hidden="true"></span>
@@ -61,8 +61,8 @@
             <path d="M14 10l6 8m0-8l-6 8" />
           </svg>
           <span>Indicators</span>
-          <span id="catalog-count-badge" class="tv-kbd num">223</span>
-          <span class="tv-kbd">Ctrl+K</span>
+          <span id="catalog-count-badge" class="tv-kbd tv-hide-compact num">223</span>
+          <span class="tv-kbd tv-kbd-hint">Ctrl+K</span>
         </button>
 
         <span class="tv-sep" aria-hidden="true"></span>
@@ -91,14 +91,14 @@
         </button>
 
         <button id="btn-holdout-vault" type="button" class="tv-tool-btn tv-vault-sealed num" title="Toggle 25% Out-of-Sample Holdout Vault (peeks are logged in Trial Ledger)">
-          Vault: SEALED (75% IS)
+          Vault: SEALED
         </button>
 
         <div id="trial-ledger-pill" class="tv-engine-pill num" title="Multiple-Testing Defense: Distinct Trials, Eigenvalue Independent N_eff &amp; Live Deflated Sharpe Ratio">
           <span id="trial-ledger-text">Trials 0 | N_eff 1.0 | DSR --</span>
         </div>
 
-        <div id="engine-status-pill" class="tv-engine-pill num" title="Polars Rust Engine Resource Guard">
+        <div id="engine-status-pill" class="tv-engine-pill tv-hide-compact num" title="Polars Rust Engine Resource Guard">
           <span class="tv-dot"></span>
           <span id="engine-status-text">polars-anta ...</span>
         </div>
@@ -220,31 +220,33 @@
         </aside>
 
         <div class="tv-canvas-pane">
-          <div class="tv-chart-mode-bar">
-            <div class="tv-seg-group">
-              <button id="btn-view-equity" type="button" class="tv-seg-btn active">Equity, Drawdown &amp; Cost Curve</button>
-              <button id="btn-view-candles" type="button" class="tv-seg-btn">Candles &amp; Trade Fills</button>
+          <div class="tv-bt-topbar">
+            <div class="tv-chart-legend" aria-live="polite">
+              <div id="legend-eq-row" class="tv-legend-row">
+                <span class="tv-legend-sym">Portfolio</span>
+                <span id="legend-dataset" class="tv-legend-meta">Synthetic Panel</span>
+                <span id="legend-eq-vals" class="tv-legend-ohlc num">Net -- | Gross -- | Bench -- | DD --</span>
+              </div>
+              <div id="legend-ohlc-row" class="tv-legend-row hidden">
+                <span id="legend-symbol" class="tv-legend-sym">AQL01</span>
+                <span id="legend-ohlc" class="tv-legend-ohlc num">O -- H -- L -- C --</span>
+              </div>
+              <div class="tv-legend-row">
+                <span class="tv-legend-ind-tag">Signal</span>
+                <span id="legend-formula" class="tv-legend-formula mono">cs_rank(rsi(close, 14))</span>
+                <span id="legend-sig-val" class="tv-legend-sig num">--</span>
+                <span id="cache-badge" class="tv-micro-tag num">INIT</span>
+                <button id="forensics-pill" type="button" class="tv-micro-tag tv-forensics-pill num" title="Open Free-Data Forensics &amp; Implicit Spread Audit">
+                  Health -- | Min Slip -- bps
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div class="tv-chart-legend" aria-live="polite">
-            <div id="legend-eq-row" class="tv-legend-row">
-              <span class="tv-legend-sym">Portfolio</span>
-              <span id="legend-dataset" class="tv-legend-meta">Synthetic Panel</span>
-              <span id="legend-eq-vals" class="tv-legend-ohlc num">Net -- | Gross -- | Bench -- | DD --</span>
-            </div>
-            <div id="legend-ohlc-row" class="tv-legend-row hidden">
-              <span id="legend-symbol" class="tv-legend-sym">AQL01</span>
-              <span id="legend-ohlc" class="tv-legend-ohlc num">O -- H -- L -- C --</span>
-            </div>
-            <div class="tv-legend-row">
-              <span class="tv-legend-ind-tag">Signal</span>
-              <span id="legend-formula" class="tv-legend-formula mono">cs_rank(rsi(close, 14))</span>
-              <span id="legend-sig-val" class="tv-legend-sig num">--</span>
-              <span id="cache-badge" class="tv-micro-tag num">INIT</span>
-              <button id="forensics-pill" type="button" class="tv-micro-tag tv-forensics-pill num" title="Open Free-Data Forensics &amp; Implicit Spread Audit">
-                Health -- | Min Slip -- bps
-              </button>
+            <div class="tv-chart-mode-bar">
+              <div class="tv-seg-group">
+                <button id="btn-view-equity" type="button" class="tv-seg-btn active">Equity, DD &amp; Cost</button>
+                <button id="btn-view-candles" type="button" class="tv-seg-btn">Candles &amp; Fills</button>
+              </div>
             </div>
           </div>
 

@@ -35,10 +35,19 @@ export class TVXRayChart {
     this.hasSector = false;
     this.bottomLeftMode = "auto"; // "auto" | "sector" | "cum_ic"
 
-    this._ro = new ResizeObserver(() => this.render());
+    this._rafId = null;
+    this._ro = new ResizeObserver(() => this._scheduleRender());
     if (this.canvas && this.canvas.parentElement) {
       this._ro.observe(this.canvas.parentElement);
     }
+  }
+
+  _scheduleRender() {
+    if (this._rafId !== null) return;
+    this._rafId = window.requestAnimationFrame(() => {
+      this._rafId = null;
+      this.render();
+    });
   }
 
   setData({ stage, spanning, hasSector }) {
@@ -54,16 +63,18 @@ export class TVXRayChart {
   }
 
   render() {
-    if (!this.canvas || !this.canvas.parentElement) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
-    const w = Math.max(320, Math.floor(rect.width));
-    const h = Math.max(220, Math.floor(rect.height));
+    const parent = this.canvas ? this.canvas.parentElement : null;
+    if (!parent) return;
+    const w = parent.clientWidth;
+    const h = parent.clientHeight;
+    if (w < 40 || h < 40) return;
+
     const dpr = window.devicePixelRatio || 1;
-    if (this.canvas.width !== Math.floor(w * dpr) || this.canvas.height !== Math.floor(h * dpr)) {
-      this.canvas.width = Math.floor(w * dpr);
-      this.canvas.height = Math.floor(h * dpr);
-      this.canvas.style.width = `${w}px`;
-      this.canvas.style.height = `${h}px`;
+    const targetW = Math.floor(w * dpr);
+    const targetH = Math.floor(h * dpr);
+    if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
+      this.canvas.width = targetW;
+      this.canvas.height = targetH;
     }
 
     const ctx = this.ctx;
@@ -95,19 +106,24 @@ export class TVXRayChart {
     ctx.lineTo(w, snap(midY));
     ctx.stroke();
 
-    this._drawDistribution(ctx, 0, 0, midX, midY, pal);
-    this._drawQuantilesAndDecay(ctx, midX, 0, w - midX, midY, pal);
-
     const showSector =
       this.bottomLeftMode === "sector" ||
       (this.bottomLeftMode === "auto" && this.hasSector && (this.stage.sector_exposures || []).length > 0);
-    if (showSector) {
-      this._drawSectorTilts(ctx, 0, midY, midX, h - midY, pal);
-    } else {
-      this._drawCumIc(ctx, 0, midY, midX, h - midY, pal);
-    }
+    const clipDraw = (qx, qy, qw, qh, fn) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(qx, qy, qw, qh);
+      ctx.clip();
+      fn(qx, qy, qw, qh);
+      ctx.restore();
+    };
 
-    this._drawSpanning(ctx, midX, midY, w - midX, h - midY, pal);
+    clipDraw(0, 0, midX, midY, (qx, qy, qw, qh) => this._drawDistribution(ctx, qx, qy, qw, qh, pal));
+    clipDraw(midX, 0, w - midX, midY, (qx, qy, qw, qh) => this._drawQuantilesAndDecay(ctx, qx, qy, qw, qh, pal));
+    clipDraw(0, midY, midX, h - midY, (qx, qy, qw, qh) =>
+      showSector ? this._drawSectorTilts(ctx, qx, qy, qw, qh, pal) : this._drawCumIc(ctx, qx, qy, qw, qh, pal)
+    );
+    clipDraw(midX, midY, w - midX, h - midY, (qx, qy, qw, qh) => this._drawSpanning(ctx, qx, qy, qw, qh, pal));
     ctx.restore();
   }
 
@@ -501,8 +517,8 @@ export class TVXRayChart {
     if (!loads.length) return;
     const topY = meterY + meterH + 20;
     const botY = y + h - 10;
-    const labelW = 114;
-    const statW = 68;
+    const labelW = Math.min(114, Math.max(72, Math.floor(fullW * 0.25)));
+    const statW = Math.min(68, Math.max(54, Math.floor(fullW * 0.16)));
     const barL = padL + labelW;
     const barR = padR - statW;
     const barW = Math.max(30, barR - barL);

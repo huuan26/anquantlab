@@ -68,10 +68,19 @@ export class TVEquityLabChart {
       this.render();
     });
     if (typeof ResizeObserver !== "undefined") {
-      new ResizeObserver(() => this.render()).observe(this.canvas.parentElement);
+      this._rafId = null;
+      new ResizeObserver(() => this._scheduleRender()).observe(this.canvas.parentElement);
     } else {
-      window.addEventListener("resize", () => this.render());
+      window.addEventListener("resize", () => this._scheduleRender());
     }
+  }
+
+  _scheduleRender() {
+    if (this._rafId !== null) return;
+    this._rafId = window.requestAnimationFrame(() => {
+      this._rafId = null;
+      this.render();
+    });
   }
 
   setBacktestData(res, currentCostBps) {
@@ -94,10 +103,12 @@ export class TVEquityLabChart {
     if (w < 40 || h < 40) return;
 
     const dpr = window.devicePixelRatio || 1;
-    this.canvas.width = Math.floor(w * dpr);
-    this.canvas.height = Math.floor(h * dpr);
-    this.canvas.style.width = `${w}px`;
-    this.canvas.style.height = `${h}px`;
+    const targetW = Math.floor(w * dpr);
+    const targetH = Math.floor(h * dpr);
+    if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
+      this.canvas.width = targetW;
+      this.canvas.height = targetH;
+    }
 
     const ctx = this.ctx;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

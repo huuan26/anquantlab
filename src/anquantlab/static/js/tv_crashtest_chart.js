@@ -42,10 +42,19 @@ export class TVCrashTestChart {
     this.report = null;
     this.bottomLeftMode = "bootstrap"; // "bootstrap" | "cusum"
 
-    this._ro = new ResizeObserver(() => this.render());
+    this._rafId = null;
+    this._ro = new ResizeObserver(() => this._scheduleRender());
     if (this.canvas && this.canvas.parentElement) {
       this._ro.observe(this.canvas.parentElement);
     }
+  }
+
+  _scheduleRender() {
+    if (this._rafId !== null) return;
+    this._rafId = window.requestAnimationFrame(() => {
+      this._rafId = null;
+      this.render();
+    });
   }
 
   setData(report) {
@@ -59,16 +68,18 @@ export class TVCrashTestChart {
   }
 
   render() {
-    if (!this.canvas || !this.canvas.parentElement) return;
-    const rect = this.canvas.parentElement.getBoundingClientRect();
-    const w = Math.max(320, Math.floor(rect.width));
-    const h = Math.max(220, Math.floor(rect.height));
+    const parent = this.canvas ? this.canvas.parentElement : null;
+    if (!parent) return;
+    const w = parent.clientWidth;
+    const h = parent.clientHeight;
+    if (w < 40 || h < 40) return;
+
     const dpr = window.devicePixelRatio || 1;
-    if (this.canvas.width !== Math.floor(w * dpr) || this.canvas.height !== Math.floor(h * dpr)) {
-      this.canvas.width = Math.floor(w * dpr);
-      this.canvas.height = Math.floor(h * dpr);
-      this.canvas.style.width = `${w}px`;
-      this.canvas.style.height = `${h}px`;
+    const targetW = Math.floor(w * dpr);
+    const targetH = Math.floor(h * dpr);
+    if (this.canvas.width !== targetW || this.canvas.height !== targetH) {
+      this.canvas.width = targetW;
+      this.canvas.height = targetH;
     }
 
     const ctx = this.ctx;
@@ -100,14 +111,23 @@ export class TVCrashTestChart {
     ctx.lineTo(w, snap(midY));
     ctx.stroke();
 
-    this._drawHeatmap(ctx, 0, 0, midX, midY, pal);
-    this._drawHaircutAndPbo(ctx, midX, 0, w - midX, midY, pal);
-    if (this.bottomLeftMode === "cusum") {
-      this._drawCusum(ctx, 0, midY, midX, h - midY, pal);
-    } else {
-      this._drawBootstrapFan(ctx, 0, midY, midX, h - midY, pal);
-    }
-    this._drawFunnel(ctx, midX, midY, w - midX, h - midY, pal);
+    const clipDraw = (qx, qy, qw, qh, fn) => {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(qx, qy, qw, qh);
+      ctx.clip();
+      fn(qx, qy, qw, qh);
+      ctx.restore();
+    };
+
+    clipDraw(0, 0, midX, midY, (qx, qy, qw, qh) => this._drawHeatmap(ctx, qx, qy, qw, qh, pal));
+    clipDraw(midX, 0, w - midX, midY, (qx, qy, qw, qh) => this._drawHaircutAndPbo(ctx, qx, qy, qw, qh, pal));
+    clipDraw(0, midY, midX, h - midY, (qx, qy, qw, qh) =>
+      this.bottomLeftMode === "cusum"
+        ? this._drawCusum(ctx, qx, qy, qw, qh, pal)
+        : this._drawBootstrapFan(ctx, qx, qy, qw, qh, pal)
+    );
+    clipDraw(midX, midY, w - midX, h - midY, (qx, qy, qw, qh) => this._drawFunnel(ctx, qx, qy, qw, qh, pal));
     ctx.restore();
   }
 
@@ -225,8 +245,9 @@ export class TVCrashTestChart {
     const bars = this.report.haircut_bars || [];
     const hL = x + 12;
     const hR = x + splitW - 12;
-    const labelW = 112;
-    const statW = 52;
+    const hSpan = Math.max(60, hR - hL);
+    const labelW = Math.min(112, Math.max(68, Math.floor(hSpan * 0.34)));
+    const statW = Math.min(52, Math.max(38, Math.floor(hSpan * 0.16)));
     const bL = hL + labelW;
     const bR = hR - statW;
     const bW = Math.max(24, bR - bL);
@@ -516,8 +537,9 @@ export class TVCrashTestChart {
     const botY = y + h - 10;
     const padL = x + 12;
     const padR = x + w - 12;
-    const labelW = 178;
-    const statW = 74;
+    const spanW = Math.max(80, padR - padL);
+    const labelW = Math.min(176, Math.max(104, Math.floor(spanW * 0.36)));
+    const statW = Math.min(74, Math.max(56, Math.floor(spanW * 0.16)));
     const barL = padL + labelW;
     const barR = padR - statW;
     const barMaxW = Math.max(30, barR - barL);

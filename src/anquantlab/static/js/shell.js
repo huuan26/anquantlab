@@ -68,6 +68,12 @@ function initThemeAndDensity() {
     const next = cur === "compact" ? "comfort" : "compact";
     applyDensity(next);
     localStorage.setItem("anquantlab_density", next);
+    window.requestAnimationFrame(() => {
+      if (state.chart) state.chart.render();
+      if (state.btLab) state.btLab.renderCurrentChart();
+      if (state.xrayLab) state.xrayLab.renderCurrentChart();
+      if (state.crashtestLab) state.crashtestLab.renderCurrentChart();
+    });
   });
 }
 
@@ -119,12 +125,16 @@ function initModeAndSubTabs() {
         document.getElementById(`panel-${id}`).classList.toggle("hidden", id !== target);
       });
       if (target === "backtest") {
-        if (state.chart) state.chart.render();
-        if (state.btLab) state.btLab.renderCurrentChart();
+        window.requestAnimationFrame(() => {
+          if (state.chart) state.chart.render();
+          if (state.btLab) state.btLab.renderCurrentChart();
+        });
       } else if (target === "xray" && state.xrayLab) {
         state.xrayLab.executeNow();
+        window.requestAnimationFrame(() => state.xrayLab.renderCurrentChart());
       } else if (target === "crashtest" && state.crashtestLab) {
         state.crashtestLab.executeNow();
+        window.requestAnimationFrame(() => state.crashtestLab.renderCurrentChart());
       }
     });
   });
@@ -158,7 +168,8 @@ function initResizableDrawer() {
   const splitter = document.getElementById("tv-splitter");
   const drawer = document.getElementById("tv-bottom-drawer");
   const savedH = Number(localStorage.getItem("anquantlab_drawer_h"));
-  if (savedH >= 120 && savedH <= 560) {
+  const maxDefaultH = Math.max(150, Math.floor(window.innerHeight * 0.52));
+  if (savedH >= 120 && savedH <= maxDefaultH) {
     drawer.style.height = `${savedH}px`;
   }
 
@@ -172,7 +183,8 @@ function initResizableDrawer() {
 
   window.addEventListener("mousemove", (ev) => {
     if (!dragging) return;
-    const newH = Math.max(110, Math.min(window.innerHeight * 0.72, window.innerHeight - ev.clientY));
+    const maxDragH = Math.max(150, window.innerHeight * 0.58);
+    const newH = Math.max(110, Math.min(maxDragH, window.innerHeight - ev.clientY));
     drawer.style.height = `${Math.round(newH)}px`;
     if (state.chart) state.chart.render();
     if (state.btLab) state.btLab.renderCurrentChart();

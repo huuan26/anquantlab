@@ -169,10 +169,12 @@ export class XRayLabController {
     const vaultBtn = document.getElementById("btn-holdout-vault");
     const tl = res.trial_ledger;
     if (res.holdout_locked) {
-      vaultBtn.textContent = `Vault: SEALED (${res.is_bars} IS)`;
+      vaultBtn.textContent = "Vault: SEALED";
+      vaultBtn.title = `Holdout Vault Sealed (${res.is_bars} IS bars)`;
       vaultBtn.className = "tv-tool-btn tv-vault-sealed num";
     } else {
-      vaultBtn.textContent = `Vault: OOS OPEN (Peeks: ${tl.holdout_peeks})`;
+      vaultBtn.textContent = `Vault: OPEN (${tl.holdout_peeks})`;
+      vaultBtn.title = `OOS Holdout Unsealed (Peeks: ${tl.holdout_peeks})`;
       vaultBtn.className = "tv-tool-btn tv-vault-open num";
     }
 
