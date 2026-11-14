@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AnQuantLab - Quantitative Alpha &amp; Falsification Workbench</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-frame">
+    <!-- Floating Framed Header -->
+    <header class="topbar" role="banner">
+      <div class="brand-group">
+        <button id="btn-toggle-sidebar" class="icon-btn mobile-only" type="button" aria-label="Toggle API catalog sidebar">
+          <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <div class="brand-mark" aria-hidden="true">
+          <svg class="icon-24" viewBox="0 0 24 24">
+            <path d="M3 17l5-5 4 4 8-9" />
+            <path d="M16 7h4v4" />
+            <path d="M3 21h18" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">AnQuantLab</div>
+          <div class="brand-subtitle">Alpha &amp; Falsification Workbench</div>
+        </div>
+      </div>
+
+      <div class="topbar-controls">
+        <div class="control-group">
+          <label for="dataset-select" class="control-label">Dataset</label>
+          <select id="dataset-select" class="select-input">
+            <option value="builtin_demo_panel">Loading datasets...</option>
+          </select>
+        </div>
+
+        <label for="dataset-upload-input" class="btn btn-secondary upload-trigger">
+          <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 16V4m0 0l-4 4m4-4l4 4" />
+            <path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2" />
+          </svg>
+          <span>Load Parquet / CSV</span>
+        </label>
+        <input id="dataset-upload-input" type="file" accept=".parquet,.csv" class="sr-only" />
+
+        <div id="engine-status-pill" class="status-pill mono" title="Runtime Engine Guard">
+          <span class="status-dot"></span>
+          <span id="engine-status-text">polars-anta ...</span>
+        </div>
+
+        <button id="btn-theme-toggle" class="icon-btn" type="button" aria-label="Switch color theme" title="Toggle Dark / Light Theme">
+          <svg id="icon-sun" class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
+          </svg>
+          <svg id="icon-moon" class="icon-24 hidden" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workbench Grid -->
+    <div class="workbench-grid">
+      <!-- Left Catalog Sidebar -->
+      <aside id="catalog-sidebar" class="sidebar" aria-label="polars-anta Function Catalog">
+        <div class="sidebar-header">
+          <div class="sidebar-title-row">
+            <h2 class="section-heading">API Catalog</h2>
+            <span id="catalog-count-badge" class="badge mono">0 exports</span>
+          </div>
+          <div class="search-box">
+            <label for="catalog-search" class="sr-only">Search polars-anta functions</label>
+            <svg class="icon-24 search-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-3.5-3.5" />
+            </svg>
+            <input id="catalog-search" type="search" class="text-input search-input" placeholder="Search 223 functions (e.g. rsi, cs_rank, var)..." autocomplete="off" />
+          </div>
+          <div id="domain-chips" class="chip-scroll" role="group" aria-label="Filter catalog by domain"></div>
+        </div>
+        <div id="catalog-list" class="catalog-list" role="list"></div>
+      </aside>
+
+      <!-- Right Workspace Area -->
+      <main class="workspace" role="main">
+        <!-- Global Formula Composer Bar -->
+        <section class="card formula-card" aria-labelledby="formula-heading">
+          <div class="formula-top-row">
+            <div class="formula-label-wrap">
+              <svg class="icon-24 accent-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M8 9l3 3-3 3m5 0h3" />
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+              </svg>
+              <label id="formula-heading" for="formula-input" class="section-heading">Causal Signal Expression (AST Whitelist)</label>
+            </div>
+            <div class="preset-row" aria-label="Preset alpha formulas">
+              <button type="button" class="preset-chip mono" data-formula="cs_rank(rsi(close, 14))">cs_rank(rsi(14))</button>
+              <button type="button" class="preset-chip mono" data-formula="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)">neutralize(zscore, sector)</button>
+              <button type="button" class="preset-chip mono" data-formula="ema(close, 12) - ema(close, 26)">ema(12) - ema(26)</button>
+              <button type="button" class="preset-chip mono" data-formula="alpha_101(open, high, low, close)">alpha_101</button>
+            </div>
+          </div>
+
+          <form id="formula-form" class="formula-bar">
+            <input
+              id="formula-input"
+              type="text"
+              class="text-input formula-input mono"
+              value="cs_rank(rsi(close, 14))"
+              spellcheck="false"
+              autocomplete="off"
+              required
+            />
+            <button id="btn-evaluate-formula" type="submit" class="btn btn-primary">
+              <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+              <span>Compile &amp; Verify</span>
+            </button>
+          </form>
+
+          <div id="formula-error-banner" class="alert-banner alert-error hidden" role="alert"></div>
+          <div id="formula-notes-banner" class="alert-banner alert-info hidden"></div>
+        </section>
+
+        <!-- 3-Tab Workbench Navigation -->
+        <nav class="tab-bar" role="tablist" aria-label="Research Workbench Tabs">
+          <button
+            id="tab-btn-backtest"
+            class="tab-btn active"
+            type="button"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-backtest"
+            data-tab="backtest"
+          >
+            <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 3v18h18" />
+              <path d="M7 15l4-4 3 3 5-6" />
+            </svg>
+            <span>1. Backtest &amp; Cost Lab</span>
+          </button>
+
+          <button
+            id="tab-btn-xray"
+            class="tab-btn"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-xray"
+            data-tab="xray"
+          >
+            <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="4" rx="1" />
+              <rect x="3" y="10" width="18" height="4" rx="1" />
+              <rect x="3" y="16" width="18" height="4" rx="1" />
+            </svg>
+            <span>2. Alpha Pipeline X-Ray</span>
+          </button>
+
+          <button
+            id="tab-btn-crashtest"
+            class="tab-btn"
+            type="button"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-crashtest"
+            data-tab="crashtest"
+          >
+            <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3l9 4.5v5c0 5-3.8 8.6-9 9.5-5.2-.9-9-4.5-9-9.5v-5L12 3z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+            <span>3. Overfitting Crash-Test</span>
+          </button>
+        </nav>
+
+        <!-- TAB 1 PANEL: Phase 1 Signal Verification & Dataset Inspector -->
+        <section id="panel-backtest" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-backtest">
+          <!-- KPI Strip -->
+          <div class="kpi-grid">
+            <div class="card kpi-card">
+              <div class="kpi-label">Dataset Rows</div>
+              <div id="kpi-rows" class="kpi-value mono">--</div>
+              <div id="kpi-span" class="kpi-sub mono">--</div>
+            </div>
+            <div class="card kpi-card">
+              <div class="kpi-label">Asset Universe</div>
+              <div id="kpi-symbols" class="kpi-value mono">--</div>
+              <div id="kpi-sectors" class="kpi-sub">--</div>
+            </div>
+            <div class="card kpi-card">
+              <div class="kpi-label">OHLCV Integrity</div>
+              <div id="kpi-ohlcv" class="kpi-value mono">--</div>
+              <div id="kpi-hash" class="kpi-sub mono">sha256: --</div>
+            </div>
+            <div class="card kpi-card">
+              <div class="kpi-label">Signal Coverage</div>
+              <div id="kpi-coverage" class="kpi-value mono">--</div>
+              <div id="kpi-latency" class="kpi-sub mono">-- ms</div>
+            </div>
+          </div>
+
+          <div class="split-two-col">
+            <!-- Causal Execution Plan & Signal Distribution -->
+            <div class="card">
+              <div class="card-header-row">
+                <h3 class="section-heading">Causal Multi-Pass Execution Plan</h3>
+                <span id="cache-badge" class="badge mono">UNCACHED</span>
+              </div>
+              <ol id="stage-list" class="stage-list"></ol>
+
+              <h4 class="subsection-heading">Signal Distribution Summary</h4>
+              <div id="signal-stats-grid" class="stats-mini-grid mono"></div>
+            </div>
+
+            <!-- Live Signal Tail Table -->
+            <div class="card">
+              <div class="card-header-row">
+                <h3 class="section-heading">Evaluated Signal Tail Preview</h3>
+                <span class="muted-caption">Sorted causally by symbol &amp; time</span>
+              </div>
+              <div class="table-scroll">
+                <table id="signal-preview-table" class="data-table mono">
+                  <thead></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Raw Dataset Schema & Head Preview -->
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="section-heading">Active OHLCV Dataset Sample</h3>
+              <span id="dataset-columns-caption" class="muted-caption mono"></span>
+            </div>
+            <div class="table-scroll">
+              <table id="dataset-preview-table" class="data-table mono">
+                <thead></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- TAB 2 PANEL: Alpha Pipeline X-Ray Shell -->
+        <section id="panel-xray" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-btn-xray">
+          <div class="card stage-placeholder">
+            <div class="placeholder-icon-wrap">
+              <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="4" rx="1" />
+                <rect x="3" y="10" width="18" height="4" rx="1" />
+                <rect x="3" y="16" width="18" height="4" rx="1" />
+              </svg>
+            </div>
+            <h3 class="section-heading">Alpha Pipeline X-Ray (Scheduled in Phase 3)</h3>
+            <p class="placeholder-desc">
+              Cross-sectional layer-by-layer inspection across four strictly causal stages at each timestamp:
+              <code class="mono">Raw Signal -&gt; cs_winsorize -&gt; neutralize(sector) -&gt; orthogonalize(controls)</code>,
+              rendering side-by-side quantile histograms, sector exposure bars, L1 factor turnover, and Newey-West HAC ICIR.
+            </p>
+          </div>
+        </section>
+
+        <!-- TAB 3 PANEL: Overfitting & Falsification Crash-Test Shell -->
+        <section id="panel-crashtest" class="tab-panel hidden" role="tabpanel" aria-labelledby="tab-btn-crashtest">
+          <div class="card stage-placeholder">
+            <div class="placeholder-icon-wrap">
+              <svg class="icon-24" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3l9 4.5v5c0 5-3.8 8.6-9 9.5-5.2-.9-9-4.5-9-9.5v-5L12 3z" />
+                <path d="M9 12l2 2 4-4" />
+              </svg>
+            </div>
+            <h3 class="section-heading">Overfitting &amp; Falsification Crash-Test (Scheduled in Phase 4)</h3>
+            <p class="placeholder-desc">
+              Rigorous statistical falsification via <code class="mono">polars_anta.inference</code>:
+              2D divergent parameter-sweep heatmaps, CSCV Probability of Backtest Overfitting (PBO),
+              Observed vs Deflated Sharpe vs Empirical-Bayes posterior haircut, 7-stage Romano-Wolf stepdown funnel, and Ploberger-Kramer CUSUM structural break test.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="/static/js/shell.js"></script>
+</body>
+</html>

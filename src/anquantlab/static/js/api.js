@@ -1,0 +1,55 @@
+/**
+ * Typed Zero-Dependency Fetch Client for AnQuantLab REST API.
+ */
+
+async function requestJson(url, options = {}) {
+  const res = await fetch(url, options);
+  let payload = null;
+  try {
+    payload = await res.json();
+  } catch {
+    payload = null;
+  }
+  if (!res.ok) {
+    const detail = payload && payload.detail ? payload.detail : `HTTP ${res.status}`;
+    throw new Error(typeof detail === "string" ? detail : JSON.stringify(detail));
+  }
+  return payload;
+}
+
+export async function fetchHealth() {
+  return requestJson("/api/health");
+}
+
+export async function fetchCatalog() {
+  return requestJson("/api/catalog");
+}
+
+export async function fetchDatasets() {
+  return requestJson("/api/datasets");
+}
+
+export async function fetchDatasetPreview(datasetId) {
+  return requestJson(`/api/datasets/${encodeURIComponent(datasetId)}/preview`);
+}
+
+export async function uploadDatasetFile(file) {
+  const form = new FormData();
+  form.append("file", file);
+  return requestJson("/api/datasets/upload", {
+    method: "POST",
+    body: form,
+  });
+}
+
+export async function previewFormula(datasetId, formula, previewLimit = 10) {
+  return requestJson("/api/formula/preview", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      dataset_id: datasetId,
+      formula,
+      preview_limit: previewLimit,
+    }),
+  });
+}
