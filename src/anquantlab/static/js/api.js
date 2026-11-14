@@ -103,3 +103,11 @@ export async function runCrashTest(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function fetchExportBundle(payload) {
+  return requestJson("/api/export/bundle", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}

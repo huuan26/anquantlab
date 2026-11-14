@@ -1320,6 +1320,46 @@ textarea:focus-visible {
   background-color: var(--tv-bg-pane);
 }
 
+/* Phase 5: Production Polars Export & Alpha Passport Modal */
+.tv-export-btn {
+  border-color: var(--tv-blue);
+  color: var(--tv-text-primary);
+}
+
+.tv-export-modal {
+  max-width: 860px;
+  height: min(600px, 88vh);
+}
+
+.tv-export-toolbar {
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--tv-border);
+  background-color: var(--tv-bg-pane);
+}
+
+.tv-export-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tv-export-pre {
+  margin: 0;
+  padding: 12px 14px;
+  flex: 1 1 auto;
+  overflow: auto;
+  background-color: var(--tv-bg-canvas);
+  color: var(--tv-text-primary);
+  font-size: 11.5px;
+  line-height: 1.42;
+}
+
 @media (max-width: 900px) {
   .tv-bt-workspace,
   .tv-editor-split,

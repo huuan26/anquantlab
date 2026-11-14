@@ -14,6 +14,7 @@ import {
 } from "./api.js";
 import { BacktestLabController } from "./backtest_view.js";
 import { CrashTestLabController } from "./crashtest_view.js";
+import { initExportModal } from "./export_hub.js";
 import { initPublicDataModal, renderForensicsPanel } from "./forensics_hub.js";
 import { TVDualChart } from "./tv_chart.js";
 import { XRayLabController } from "./xray_view.js";
@@ -539,6 +540,27 @@ async function bootstrap() {
     getFormula: () => document.getElementById("formula-input").value.trim(),
     getHoldoutLocked,
     onError: (msg) => showBanner("formula-error-banner", msg),
+  });
+  initExportModal({
+    getExportPayload: () => {
+      const vt = Number(document.getElementById("bt-vol-slider").value);
+      return {
+        dataset_id: state.activeDatasetId,
+        formula: document.getElementById("formula-input").value.trim(),
+        weight_scheme: document.getElementById("bt-weight-select").value,
+        execution_price: document.getElementById("bt-exec-select").value,
+        fee_bps: Number(document.getElementById("bt-fee-slider").value),
+        slippage_mode: document.getElementById("bt-slip-mode").value,
+        slippage_bps: Number(document.getElementById("bt-slip-slider").value),
+        vol_target: vt > 0 ? Number((vt / 100.0).toFixed(4)) : null,
+        no_trade_buffer: Number(document.getElementById("bt-buf-slider").value),
+        signal_lag: Number(document.getElementById("bt-lag-slider").value),
+        limit_lock_skip: document.getElementById("bt-limit-lock").checked,
+        intraday_flatten: document.getElementById("bt-intraday-flat").checked,
+        delisting_penalty_bps_yr: Number(document.getElementById("ct-delist-slider").value),
+        holdout_locked: state.holdoutLocked,
+      };
+    },
   });
 
   document.getElementById("btn-holdout-vault").addEventListener("click", () => {

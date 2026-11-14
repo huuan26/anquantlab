@@ -82,6 +82,14 @@
       </div>
 
       <div class="tv-topbar-right">
+        <button id="btn-open-export" type="button" class="tv-tool-btn tv-export-btn" aria-haspopup="dialog" aria-controls="export-modal" title="1-Click Export Production Polars .py, HTML Tearsheet &amp; SHA-256 Alpha Passport">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
+            <path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2" />
+          </svg>
+          <span>Export</span>
+        </button>
+
         <button id="btn-holdout-vault" type="button" class="tv-tool-btn tv-vault-sealed num" title="Toggle 25% Out-of-Sample Holdout Vault (peeks are logged in Trial Ledger)">
           Vault: SEALED (75% IS)
         </button>
@@ -793,6 +801,41 @@
       </div>
       <div id="public-data-error" class="tv-banner tv-banner-err hidden" role="alert"></div>
       <div id="public-preset-list" class="tv-public-preset-list"></div>
+    </div>
+  </div>
+
+  <!-- Phase 5: 1-Click Production Polars Codegen, HTML Tearsheet & Alpha Passport Modal -->
+  <div id="export-modal" class="tv-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="export-modal-title">
+    <div class="tv-modal tv-export-modal">
+      <div class="tv-modal-header">
+        <div>
+          <h2 id="export-modal-title" class="tv-modal-title">Production Polars Export &amp; Alpha Passport</h2>
+          <div id="export-passport-meta" class="tv-muted-meta mono">Assembling audit bundle...</div>
+        </div>
+        <button id="btn-close-export" type="button" class="tv-icon-btn" aria-label="Close Export dialog">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div id="export-error-banner" class="tv-banner tv-banner-err hidden" role="alert"></div>
+      <div id="export-kpi-strip" class="tv-kpi-strip"></div>
+
+      <div class="tv-export-toolbar">
+        <div class="tv-seg-group">
+          <button id="btn-exp-tab-py" type="button" class="tv-seg-btn active">Polars + polars-anta (.py)</button>
+          <button id="btn-exp-tab-json" type="button" class="tv-seg-btn">alpha_passport.json</button>
+        </div>
+        <div class="tv-export-actions">
+          <button id="btn-copy-py" type="button" class="tv-tool-btn">Copy .py</button>
+          <button id="btn-dl-py" type="button" class="tv-btn-primary">Download .py</button>
+          <button id="btn-dl-html" type="button" class="tv-tool-btn">HTML Tearsheet</button>
+          <button id="btn-dl-passport" type="button" class="tv-tool-btn">Passport JSON</button>
+        </div>
+      </div>
+
+      <pre id="export-preview-pre" class="tv-export-pre mono"></pre>
     </div>
   </div>
 

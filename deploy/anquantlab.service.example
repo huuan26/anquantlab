@@ -1,0 +1,52 @@
+# Hardened systemd service unit for AnQuantLab on Linux hft-server (Ubuntu / Debian)
+# Copy to /etc/systemd/system/anquantlab.service, adjust User/WorkingDirectory, then run:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now anquantlab.service
+#   sudo systemctl status anquantlab.service
+
+[Unit]
+Description=AnQuantLab Quantitative Alpha & Falsification Workbench (polars-anta)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=trader
+Group=trader
+WorkingDirectory=/home/trader/anquantlab
+
+# Pin Polars & Rayon thread pools to protect co-located live HFT engines
+Environment="ANQUANTLAB_HOST=127.0.0.1"
+Environment="ANQUANTLAB_PORT=8765"
+Environment="ANQUANTLAB_MAX_THREADS=2"
+Environment="ANQUANTLAB_MAX_CONCURRENT=2"
+Environment="ANQUANTLAB_COMPUTE_TIMEOUT_SEC=15.0"
+Environment="ANQUANTLAB_MAX_UPLOAD_MB=50"
+Environment="ANQUANTLAB_ALLOW_PUBLIC_FETCH=1"
+Environment="ANQUANTLAB_CACHE_DIR=/home/trader/.anquantlab/public_cache"
+Environment="POLARS_MAX_THREADS=2"
+Environment="RAYON_NUM_THREADS=2"
+
+# Option A: Dedicated virtualenv (.venv)
+ExecStart=/home/trader/anquantlab/.venv/bin/anquantlab serve --host 127.0.0.1 --port 8765 --no-browser
+# Option B: Conda trading_env (uncomment if deployed inside Conda)
+# ExecStart=/home/trader/miniconda3/envs/trading_env/bin/anquantlab serve --host 127.0.0.1 --port 8765 --no-browser
+
+Restart=on-failure
+RestartSec=5s
+
+# Resource & Security Sandboxing
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/trader/.anquantlab
+MemoryMax=2G
+CPUQuota=200%
+
+# Bounded journald output (configure SystemMaxUse=200M in /etc/systemd/journald.conf)
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=anquantlab
+
+[Install]
+WantedBy=multi-user.target

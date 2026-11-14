@@ -22,6 +22,7 @@ from .backtest_lab import BacktestLabEngine  # noqa: E402
 from .catalog import build_catalog  # noqa: E402
 from .crashtest_lab import CrashTestLabEngine  # noqa: E402
 from .crashtest_schemas import CrashTestRunRequest, CrashTestRunResponse  # noqa: E402
+from .export_schemas import ExportBundleRequest, ExportBundleResponse  # noqa: E402
 from .expr_dsl import FormulaSyntaxError  # noqa: E402
 from .public_data import HttpGetter, list_public_presets  # noqa: E402
 from .schemas import (  # noqa: E402
@@ -42,6 +43,7 @@ from .schemas import (  # noqa: E402
     TrialLedgerSnapshot,
 )
 from .store import WorkbenchStore  # noqa: E402
+from .tearsheet_passport import ExportBundleEngine  # noqa: E402
 from .trial_ledger import TrialLedgerRegistry  # noqa: E402
 from .xray_lab import XRayLabEngine  # noqa: E402
 from .xray_schemas import XRayRunRequest, XRayRunResponse  # noqa: E402
@@ -106,6 +108,7 @@ def create_app(
     bt_engine = BacktestLabEngine()
     xray_engine = XRayLabEngine()
     crashtest_engine = CrashTestLabEngine()
+    export_engine = ExportBundleEngine()
     semaphore = asyncio.Semaphore(cfg.max_concurrent)
 
     app = FastAPI(
@@ -119,6 +122,7 @@ def create_app(
     app.state.bt_engine = bt_engine
     app.state.xray_engine = xray_engine
     app.state.crashtest_engine = crashtest_engine
+    app.state.export_engine = export_engine
 
     async def _run_guarded(fn: Any, *args: Any) -> Any:
         async with semaphore:
@@ -356,6 +360,25 @@ def create_app(
             raise HTTPException(
                 status_code=400, detail=f"Crash-Test execution error: {exc}"
             ) from exc
+
+    @app.post("/api/export/bundle", response_model=ExportBundleResponse)
+    async def export_bundle(req: ExportBundleRequest) -> ExportBundleResponse:
+        try:
+            return await _run_guarded(
+                export_engine.build_bundle,
+                store,
+                trial_ledger,
+                bt_engine,
+                xray_engine,
+                crashtest_engine,
+                req,
+            )
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FormulaSyntaxError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Export bundle error: {exc}") from exc
 
     @app.get("/api/trials/{dataset_id}", response_model=TrialLedgerSnapshot)
     async def get_trial_ledger(dataset_id: str) -> TrialLedgerSnapshot:

@@ -1,34 +1,63 @@
 # AnQuantLab
 
-Interactive Quantitative Alpha & Falsification Workbench built on [polars-anta](https://pypi.org/project/polars-anta/).
+Interactive Quantitative Alpha & Small-Sample Falsification Terminal powered by [polars-anta](https://pypi.org/project/polars-anta/) (`>= 0.4.0`) and [Polars](https://pola.rs/).
 
-## Overview
+`anquantlab` turns small-sample and free OHLCV data constraints into rigorous econometric guardrails: endogenous zero-orderbook spread estimation, automated dirty-bar and survivorship forensics, a sealed 75/25 Out-of-Sample Holdout Vault, an eigenvalue-adjusted cumulative Session Trial Ledger, 5-Factor Zoo Spanning checks, Romano-Wolf stepdown falsification, and 1-Click standalone `Polars + polars-anta` code generation.
 
-`anquantlab` provides a zero-Node.js, offline-capable quantitative research workbench combining:
+## Key Capabilities
 
-1. **Dynamic 223-Function API Catalog & Safe Causal Formula DSL**: AST-whitelisted expression compiler with automatic multi-pass `.over(symbol)` and `.over(timestamp)` causal staging.
-2. **Free-Data Forensics, Implicit OHLCV Spread Audit & Zero-Key Public Hub**: Automated dirty-bar diagnostics (OHLC violations, split/dividend jumps, zero-volume/frozen bars, survivorship risk grading), zero-orderbook microstructure estimators (`corwin_schultz_spread`, `roll_spread`, `amihud_illiquidity`), and whitelisted zero-key public connectors (`Binance Public Klines` with `taker_buy_ratio` orderflow and `Stooq US Sector ETFs`).
-3. **Backtest & Realtime Cost/Buffer Lab**: Interactive cost, slippage, volatility target, and hysteresis buffer evaluation.
-3. **Alpha Pipeline X-Ray**: Step-by-step cross-sectional diagnostics (`Raw -> cs_winsorize -> neutralize -> orthogonalize`).
-4. **Overfitting & Falsification Crash-Test**: Parameter sweep heatmaps, CSCV Probability of Backtest Overfitting, Deflated Sharpe Ratio, Empirical-Bayes shrinkage, and Romano-Wolf falsification funnels.
+1. **Dynamic 223-Function Catalog & Safe Causal AST DSL**:
+   - Runtime introspection of all 225 public `polars-anta` exports (`Ctrl+K` Indicator & Primitive palette).
+   - Zero-`eval` AST whitelist compiler that automatically stages time-series `.over(symbol)` and cross-sectional `.over(timestamp)` passes with strict zero look-ahead causality.
+2. **Free-Data Forensics, Implicit OHLCV Spreads & Zero-Key Data Hub**:
+   - Sub-15ms dataset health scoring (`0-100`) detecting OHLC boundary violations, unadjusted split/dividend jumps, zero-volume/frozen bars, and early-dropout survivorship risk.
+   - Zero-orderbook microstructure estimators (`corwin_schultz_spread`, `roll_spread`, `amihud_illiquidity`) directly from free OHLCV bars.
+   - Optional zero-API-key legal public connectors (`Binance Public Klines` with `taker_buy_ratio` orderflow and `Stooq US Sector ETFs`), cached outside the Git repository tree.
+3. **Tab 1 - Backtest, Endogenous Cost Lab, Holdout Vault & Trial Ledger**:
+   - Two-tier cached portfolio simulation (`< 30ms` warm slider latency) across `dollar_neutral`, `long_only`, `equal_weight`, and `raw` schemes with limit-lock skip and intraday session flatten rules.
+   - Sealed `75% IS / 25% OOS` Holdout Vault and live Session Trial Ledger tracking distinct trials, eigenvalue effective independent signals (`N_eff`), OOS peeks, and live Deflated Sharpe Ratio (`DSR`).
+4. **Tab 2 - 4-Stage Causal Alpha Pipeline X-Ray & 5-Factor Spanning**:
+   - Step-by-step inspection across `Raw -> cs_winsorize -> neutralize -> orthogonalize` with quantile spreads, IC decay half-life, and sector net exposure verification.
+   - Driscoll-Kraay HAC spanning regression against a canonical 5-Factor Zoo (*Momentum, Short-Term Reversal, Yang-Zhang Volatility, Amihud Illiquidity, Market Beta*) separating spanned `R^2` from pure orthogonal alpha.
+5. **Tab 3 - Overfitting Crash-Test & Small-Sample Stress Suite**:
+   - Automatic 2D AST parameter perturbation heatmaps with Moore-neighborhood plateau ratios, CSCV Probability of Backtest Overfitting (`pbo_cscv`), and 4-bar Multiple-Testing Sharpe Haircuts (`Observed -> Grid DSR -> Session Ledger DSR -> Empirical-Bayes Posterior`).
+   - `200` Stationary Block Bootstrap synthetic worlds paired with `200` Block-Rademacher Null Permuted worlds, a 7-stage Romano-Wolf FWER stepdown funnel, Ploberger-Kramer OLS-CUSUM structural break detection, and a Survivorship Delisting Penalty drag slider.
+6. **1-Click Production Codegen, HTML Tearsheet & Alpha Passport**:
+   - Transpiles validated UI formulas and friction rules into standalone, AST-sandbox-verified `Polars + polars-anta` `.py` scripts (`0` `anquantlab` runtime lock-in), offline single-file HTML tearsheets, and SHA-256 signed `alpha_passport.json` audit manifests.
 
-## Quick Start
+## Installation & Quick Start
 
 ```bash
-pip install anquantlab
-anquantlab --port 8765
+pip install -e .
+anquantlab serve --port 8765
 ```
 
-## Resource Safety Configuration
+Open `http://127.0.0.1:8765` in any modern browser. No Node.js, bundler, or external CDN access is required.
 
-All operational bounds are controlled via environment variables (`ANQUANTLAB_*`) for safe co-location on shared research or low-latency servers:
+## Resource & Server Safety Configuration
 
-- `ANQUANTLAB_HOST` (default `127.0.0.1`)
-- `ANQUANTLAB_PORT` (default `8765`)
-- `ANQUANTLAB_MAX_THREADS` (default `2`, pins `POLARS_MAX_THREADS` before Polars initializes)
-- `ANQUANTLAB_MAX_CONCURRENT` (default `2`)
-- `ANQUANTLAB_COMPUTE_TIMEOUT_SEC` (default `15.0`)
-- `ANQUANTLAB_MAX_UPLOAD_MB` (default `50`)
-- `ANQUANTLAB_READONLY_PATHS` (optional semicolon/colon-separated `.parquet`/`.csv` file paths)
-- `ANQUANTLAB_ALLOW_PUBLIC_FETCH` (default `1`; set `0` for strict air-gapped/offline mode)
-- `ANQUANTLAB_CACHE_DIR` (default `~/.anquantlab/public_cache`, outside the Git repository tree)
+All operational limits are configured via `ANQUANTLAB_*` environment variables for safe co-location on shared Linux research or HFT servers (see `deploy/anquantlab.service.example`):
+
+| Variable | Default | Description |
+| :--- | :--- | :--- |
+| `ANQUANTLAB_HOST` | `127.0.0.1` | Bind address (keep `127.0.0.1` behind SSH tunnel or reverse proxy) |
+| `ANQUANTLAB_PORT` | `8765` | HTTP listen port |
+| `ANQUANTLAB_MAX_THREADS` | `2` | Pins `POLARS_MAX_THREADS` before Polars initializes |
+| `ANQUANTLAB_MAX_CONCURRENT` | `2` | Async semaphore cap on concurrent compute requests |
+| `ANQUANTLAB_COMPUTE_TIMEOUT_SEC` | `15.0` | Per-request execution timeout guard |
+| `ANQUANTLAB_MAX_UPLOAD_MB` | `50` | Maximum `.parquet` / `.csv` upload payload |
+| `ANQUANTLAB_ALLOW_PUBLIC_FETCH` | `1` | Set `0` for strict air-gapped / offline operation |
+| `ANQUANTLAB_CACHE_DIR` | `~/.anquantlab/public_cache` | External cache directory outside Git |
+| `ANQUANTLAB_READONLY_PATHS` | unset | Optional semicolon/colon-separated read-only `.parquet`/`.csv` paths |
+
+## Development & Verification
+
+```bash
+ruff check .
+ruff format --check .
+pytest tests -v
+```
+
+## License
+
+Apache-2.0

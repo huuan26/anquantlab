@@ -6,7 +6,7 @@ from .config import Settings, apply_thread_limits, load_settings
 
 apply_thread_limits()
 
-__version__ = "0.1.0a1"
+__version__ = "0.4.0"
 
 __all__ = [
     "Settings",
