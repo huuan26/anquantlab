@@ -13,7 +13,7 @@ apply_thread_limits()
 
 import polars as pl  # noqa: E402
 import polars_anta as pa  # noqa: E402
-from fastapi import FastAPI, File, HTTPException, UploadFile  # noqa: E402
+from fastapi import FastAPI, File, HTTPException, Request, Response, UploadFile  # noqa: E402
 from fastapi.responses import FileResponse  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 
@@ -116,6 +116,14 @@ def create_app(
         description="Interactive Quantitative Alpha & Falsification Workbench on polars-anta",
         version=__version__,
     )
+
+    @app.middleware("http")
+    async def _no_stale_frontend_cache(request: Request, call_next: Any) -> Response:
+        response = await call_next(request)
+        if request.url.path == "/" or request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-cache, must-revalidate"
+        return response
+
     app.state.settings = cfg
     app.state.store = store
     app.state.trial_ledger = trial_ledger
