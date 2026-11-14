@@ -182,11 +182,20 @@ def test_fastapi_endpoints_upload_and_lru_cache() -> None:
     assert r_prev.status_code == 200
     assert r_prev.json()["ohlcv_valid"] is True
 
-    # Formula preview + LRU Cache Hit
-    payload = {"dataset_id": "builtin_demo_panel", "formula": "cs_rank(rsi(close, 14))"}
+    # Formula preview + LRU Cache Hit + TradingView Chart Series
+    payload = {
+        "dataset_id": "builtin_demo_panel",
+        "formula": "cs_rank(rsi(close, 14))",
+        "symbol": "AQL03",
+        "chart_bars": 90,
+    }
     r_f1 = client.post("/api/formula/preview", json=payload)
     assert r_f1.status_code == 200
-    assert r_f1.json()["cache_hit"] is False
+    f1_json = r_f1.json()
+    assert f1_json["cache_hit"] is False
+    assert f1_json["active_symbol"] == "AQL03"
+    assert len(f1_json["available_symbols"]) == 24
+    assert len(f1_json["chart_series"]) == 90
 
     r_f2 = client.post("/api/formula/preview", json=payload)
     assert r_f2.status_code == 200

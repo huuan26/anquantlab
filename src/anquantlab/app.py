@@ -22,6 +22,7 @@ from .catalog import build_catalog  # noqa: E402
 from .expr_dsl import FormulaSyntaxError  # noqa: E402
 from .schemas import (  # noqa: E402
     CatalogResponse,
+    ChartBarPoint,
     DatasetInfo,
     DatasetListResponse,
     DatasetPreviewResponse,
@@ -190,12 +191,48 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)
         stats = _compute_signal_stats(sig_df)
 
+        avail_syms: list[str] = []
+        active_sym: str | None = None
+        chart_df = sig_df
+        if entry.symbol_col and entry.symbol_col in sig_df.columns:
+            avail_syms = sorted(
+                str(x) for x in sig_df[entry.symbol_col].drop_nulls().unique().to_list()
+            )[:200]
+            if req.symbol and req.symbol in avail_syms:
+                active_sym = req.symbol
+            elif avail_syms:
+                active_sym = avail_syms[0]
+            if active_sym is not None:
+                chart_df = sig_df.filter(pl.col(entry.symbol_col) == active_sym)
+
+        chart_slice = chart_df.tail(req.chart_bars).select(
+            pl.col(entry.time_col).cast(pl.String).alias("t"),
+            pl.col("open").alias("o"),
+            pl.col("high").alias("h"),
+            pl.col("low").alias("l"),
+            pl.col("close").alias("c"),
+            pl.col("volume").alias("v"),
+            pl.col("signal").alias("s"),
+        )
+        chart_points = [
+            ChartBarPoint(
+                t=row["t"],
+                o=float(row["o"]),
+                h=float(row["h"]),
+                l=float(row["l"]),
+                c=float(row["c"]),
+                v=float(row["v"]),
+                s=_finite_float(row["s"]),
+            )
+            for row in chart_slice.to_dicts()
+        ]
+
         display_cols = [entry.time_col]
         if entry.symbol_col:
             display_cols.append(entry.symbol_col)
         if entry.sector_col:
             display_cols.append(entry.sector_col)
-        display_cols.extend(["close", "volume", "signal"])
+        display_cols.extend(["open", "high", "low", "close", "volume", "signal"])
 
         valid_tail = (
             sig_df.filter(pl.col("signal").is_not_null())
@@ -212,9 +249,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             normalized_formula=plan.normalized_formula,
             cache_hit=cache_hit,
             elapsed_ms=elapsed_ms,
+            active_symbol=active_sym,
+            available_symbols=avail_syms,
             notes=plan.notes,
             stages=stages,
             stats=stats,
+            chart_series=chart_points,
             sample_rows=valid_tail.to_dicts(),
         )
 

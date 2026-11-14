@@ -1,5 +1,6 @@
 /**
- * Phase 1 Workbench Controller: Theme, Dynamic 225-Export Catalog, Dataset Store & Causal DSL Preview.
+ * TradingView-Style Terminal Controller:
+ * Docked Resizable Panes, Dual-Pane Canvas, Ctrl+K fx Modal, 12px/13.5px Scale & Causal DSL.
  */
 
 import {
@@ -10,70 +11,172 @@ import {
   previewFormula,
   uploadDatasetFile,
 } from "./api.js";
+import { TVDualChart } from "./tv_chart.js";
 
 const state = {
   catalog: null,
   activeDomain: "all",
   searchQuery: "",
   activeDatasetId: "builtin_demo_panel",
-  activeTab: "backtest",
+  activeDatasetName: "Synthetic Panel",
+  activeSymbol: null,
+  chart: null,
 };
 
 function fmtNum(val, digits = 4) {
-  if (val === null || val === undefined || Number.isNaN(Number(val))) {
-    return "--";
-  }
+  if (val === null || val === undefined || Number.isNaN(Number(val))) return "--";
   return Number(val).toFixed(digits);
 }
 
-function initTheme() {
-  const saved = localStorage.getItem("anquantlab_theme") || "dark";
-  applyTheme(saved);
-  const btn = document.getElementById("btn-theme-toggle");
-  btn.addEventListener("click", () => {
+function fmtVol(v) {
+  if (v === null || v === undefined) return "--";
+  if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
+  if (v >= 1e3) return `${(v / 1e3).toFixed(1)}K`;
+  return String(Math.round(v));
+}
+
+function initThemeAndDensity() {
+  const savedTheme = localStorage.getItem("anquantlab_theme") || "dark";
+  const savedDensity = localStorage.getItem("anquantlab_density") || "compact";
+  applyTheme(savedTheme);
+  applyDensity(savedDensity);
+
+  document.getElementById("btn-theme-toggle").addEventListener("click", () => {
     const cur = document.documentElement.getAttribute("data-theme") || "dark";
     const next = cur === "dark" ? "light" : "dark";
     applyTheme(next);
     localStorage.setItem("anquantlab_theme", next);
+    if (state.chart) state.chart.render();
+  });
+
+  document.getElementById("btn-density-toggle").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-density") || "compact";
+    const next = cur === "compact" ? "comfort" : "compact";
+    applyDensity(next);
+    localStorage.setItem("anquantlab_density", next);
   });
 }
 
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);
-  const sun = document.getElementById("icon-sun");
-  const moon = document.getElementById("icon-moon");
-  if (theme === "dark") {
-    sun.classList.remove("hidden");
-    moon.classList.add("hidden");
-  } else {
-    sun.classList.add("hidden");
-    moon.classList.remove("hidden");
-  }
+  document.getElementById("icon-sun").classList.toggle("hidden", theme !== "dark");
+  document.getElementById("icon-moon").classList.toggle("hidden", theme === "dark");
 }
 
-function initTabs() {
-  const buttons = document.querySelectorAll(".tab-btn");
-  buttons.forEach((btn) => {
+function applyDensity(density) {
+  document.documentElement.setAttribute("data-density", density);
+  document.getElementById("density-label").textContent = density === "compact" ? "12px" : "13.5px";
+}
+
+function initModeAndSubTabs() {
+  const modeBtns = document.querySelectorAll(".tv-mode-tab");
+  modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.dataset.tab;
-      state.activeTab = target;
-      buttons.forEach((b) => {
+      modeBtns.forEach((b) => {
         const active = b.dataset.tab === target;
         b.classList.toggle("active", active);
         b.setAttribute("aria-selected", active ? "true" : "false");
       });
-      document.querySelectorAll(".tab-panel").forEach((panel) => {
-        panel.classList.toggle("hidden", panel.id !== `panel-${target}`);
+      ["backtest", "xray", "crashtest"].forEach((id) => {
+        document.getElementById(`panel-${id}`).classList.toggle("hidden", id !== target);
+      });
+      if (target === "backtest" && state.chart) state.chart.render();
+    });
+  });
+
+  const subBtns = document.querySelectorAll(".tv-subtab");
+  subBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.subtab;
+      const drawer = document.getElementById("tv-bottom-drawer");
+      drawer.classList.remove("collapsed");
+      subBtns.forEach((b) => {
+        const active = b.dataset.subtab === target;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      ["editor", "metrics", "table"].forEach((id) => {
+        document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
       });
     });
   });
+
+  const btnSig = document.getElementById("btn-tbl-signal");
+  const btnRaw = document.getElementById("btn-tbl-raw");
+  btnSig.addEventListener("click", () => {
+    btnSig.classList.add("active");
+    btnRaw.classList.remove("active");
+    document.getElementById("signal-preview-table").classList.remove("hidden");
+    document.getElementById("dataset-preview-table").classList.add("hidden");
+  });
+  btnRaw.addEventListener("click", () => {
+    btnRaw.classList.add("active");
+    btnSig.classList.remove("active");
+    document.getElementById("dataset-preview-table").classList.remove("hidden");
+    document.getElementById("signal-preview-table").classList.add("hidden");
+  });
 }
 
-function initMobileSidebar() {
-  const btn = document.getElementById("btn-toggle-sidebar");
-  const sidebar = document.getElementById("catalog-sidebar");
-  btn.addEventListener("click", () => {
-    sidebar.classList.toggle("collapsed-mobile");
+function initResizableDrawer() {
+  const splitter = document.getElementById("tv-splitter");
+  const drawer = document.getElementById("tv-bottom-drawer");
+  const savedH = Number(localStorage.getItem("anquantlab_drawer_h"));
+  if (savedH >= 120 && savedH <= 560) {
+    drawer.style.height = `${savedH}px`;
+  }
+
+  let dragging = false;
+  splitter.addEventListener("mousedown", (ev) => {
+    ev.preventDefault();
+    dragging = true;
+    drawer.classList.remove("collapsed");
+    splitter.classList.add("dragging");
+  });
+
+  window.addEventListener("mousemove", (ev) => {
+    if (!dragging) return;
+    const newH = Math.max(110, Math.min(window.innerHeight * 0.72, window.innerHeight - ev.clientY));
+    drawer.style.height = `${Math.round(newH)}px`;
+    if (state.chart) state.chart.render();
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (!dragging) return;
+    dragging = false;
+    splitter.classList.remove("dragging");
+    localStorage.setItem("anquantlab_drawer_h", String(drawer.offsetHeight));
+  });
+
+  document.getElementById("btn-toggle-drawer").addEventListener("click", () => {
+    drawer.classList.toggle("collapsed");
+    if (state.chart) setTimeout(() => state.chart.render(), 20);
+  });
+}
+
+function initFxModal() {
+  const modal = document.getElementById("fx-modal");
+  const searchInput = document.getElementById("catalog-search");
+  const openModal = () => {
+    modal.classList.remove("hidden");
+    searchInput.focus();
+    searchInput.select();
+  };
+  const closeModal = () => modal.classList.add("hidden");
+
+  document.getElementById("btn-open-fx").addEventListener("click", openModal);
+  document.getElementById("btn-close-fx").addEventListener("click", closeModal);
+  modal.addEventListener("click", (ev) => {
+    if (ev.target === modal) closeModal();
+  });
+
+  window.addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "k") {
+      ev.preventDefault();
+      openModal();
+    } else if (ev.key === "Escape" && !modal.classList.contains("hidden")) {
+      closeModal();
+    }
   });
 }
 
@@ -82,29 +185,27 @@ function renderDomainChips() {
   wrap.textContent = "";
   if (!state.catalog) return;
 
-  const allChip = document.createElement("button");
-  allChip.type = "button";
-  allChip.className = `domain-chip mono ${state.activeDomain === "all" ? "active" : ""}`;
-  allChip.textContent = `All (${state.catalog.total_exports})`;
-  allChip.addEventListener("click", () => {
-    state.activeDomain = "all";
-    renderDomainChips();
-    renderCatalogItems();
-  });
-  wrap.appendChild(allChip);
-
-  for (const dom of state.catalog.domains) {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = `domain-chip mono ${state.activeDomain === dom.domain ? "active" : ""}`;
-    chip.textContent = `${dom.domain} (${dom.count})`;
-    chip.title = dom.label;
-    chip.addEventListener("click", () => {
-      state.activeDomain = dom.domain;
+  const mkChip = (key, label, cnt) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `domain-chip ${state.activeDomain === key ? "active" : ""}`;
+    const s1 = document.createElement("span");
+    s1.textContent = label;
+    const s2 = document.createElement("span");
+    s2.className = "num";
+    s2.textContent = String(cnt);
+    btn.append(s1, s2);
+    btn.addEventListener("click", () => {
+      state.activeDomain = key;
       renderDomainChips();
       renderCatalogItems();
     });
-    wrap.appendChild(chip);
+    return btn;
+  };
+
+  wrap.appendChild(mkChip("all", "All Exports", state.catalog.total_exports));
+  for (const dom of state.catalog.domains) {
+    wrap.appendChild(mkChip(dom.domain, dom.label, dom.count));
   }
 }
 
@@ -114,46 +215,32 @@ function renderCatalogItems() {
   if (!state.catalog) return;
 
   const q = state.searchQuery.trim().toLowerCase();
-  const filtered = state.catalog.items.filter((item) => {
-    if (state.activeDomain !== "all" && item.domain !== state.activeDomain) {
-      return false;
-    }
+  const filtered = state.catalog.items.filter((it) => {
+    if (state.activeDomain !== "all" && it.domain !== state.activeDomain) return false;
     if (!q) return true;
     return (
-      item.name.toLowerCase().includes(q) ||
-      item.summary.toLowerCase().includes(q) ||
-      item.domain.toLowerCase().includes(q)
+      it.name.toLowerCase().includes(q) ||
+      it.summary.toLowerCase().includes(q) ||
+      it.domain.toLowerCase().includes(q)
     );
   });
 
-  if (filtered.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "muted-caption";
-    empty.textContent = "No matching exports in polars-anta.";
-    listEl.appendChild(empty);
-    return;
-  }
-
   const frag = document.createDocumentFragment();
   for (const item of filtered) {
-    const card = document.createElement("button");
-    card.type = "button";
-    card.className = "catalog-item";
-    card.setAttribute("role", "listitem");
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = "catalog-item";
+    row.setAttribute("role", "listitem");
 
     const top = document.createElement("div");
     top.className = "catalog-item-top";
-
     const fnSpan = document.createElement("span");
     fnSpan.className = "catalog-fn-name mono";
     fnSpan.textContent = item.name;
-
     const kindSpan = document.createElement("span");
     kindSpan.className = "catalog-kind-tag mono";
     kindSpan.textContent = item.kind;
-
-    top.appendChild(fnSpan);
-    top.appendChild(kindSpan);
+    top.append(fnSpan, kindSpan);
 
     const sigDiv = document.createElement("div");
     sigDiv.className = "catalog-sig mono";
@@ -163,27 +250,34 @@ function renderCatalogItems() {
     descDiv.className = "catalog-desc";
     descDiv.textContent = item.summary;
 
-    card.appendChild(top);
-    card.appendChild(sigDiv);
-    card.appendChild(descDiv);
-
-    card.addEventListener("click", () => {
+    row.append(top, sigDiv, descDiv);
+    row.addEventListener("click", () => {
+      document.getElementById("fx-modal").classList.add("hidden");
       if (item.kind === "expr_ts" || item.kind === "expr_cs") {
         const input = document.getElementById("formula-input");
         input.value = item.sample_formula;
-        input.focus();
         runFormulaEvaluation();
       } else {
         showBanner(
           "formula-notes-banner",
-          `'${item.name}' (${item.kind}) is a portfolio/inference operator executed automatically in the Evaluation & Crash-Test tabs.`
+          `'${item.name}' (${item.kind}) executes in the Portfolio Evaluation & Crash-Test workflows.`
         );
       }
     });
-
-    frag.appendChild(card);
+    frag.appendChild(row);
   }
   listEl.appendChild(frag);
+}
+
+function updateLegendBar(bar, prevBar) {
+  if (!bar) return;
+  const ohlcEl = document.getElementById("legend-ohlc");
+  const up = bar.c >= bar.o;
+  const chgPct = prevBar && prevBar.c ? (((bar.c - prevBar.c) / prevBar.c) * 100).toFixed(2) : "0.00";
+  const sign = Number(chgPct) >= 0 ? "+" : "";
+  ohlcEl.textContent = `O ${fmtNum(bar.o, 2)}  H ${fmtNum(bar.h, 2)}  L ${fmtNum(bar.l, 2)}  C ${fmtNum(bar.c, 2)} (${sign}${chgPct}%)  Vol ${fmtVol(bar.v)}`;
+  ohlcEl.style.color = up ? "var(--tv-up)" : "var(--tv-down)";
+  document.getElementById("legend-sig-val").textContent = bar.s !== null && bar.s !== undefined ? fmtNum(bar.s, 4) : "null";
 }
 
 function renderTable(tableId, rows) {
@@ -192,24 +286,16 @@ function renderTable(tableId, rows) {
   const tbody = table.querySelector("tbody");
   thead.textContent = "";
   tbody.textContent = "";
-
-  if (!rows || rows.length === 0) {
-    const tr = document.createElement("tr");
-    const td = document.createElement("td");
-    td.textContent = "No rows available.";
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-    return;
-  }
+  if (!rows || rows.length === 0) return;
 
   const cols = Object.keys(rows[0]);
-  const headTr = document.createElement("tr");
+  const hTr = document.createElement("tr");
   for (const col of cols) {
     const th = document.createElement("th");
     th.textContent = col;
-    headTr.appendChild(th);
+    hTr.appendChild(th);
   }
-  thead.appendChild(headTr);
+  thead.appendChild(hTr);
 
   for (const row of rows) {
     const tr = document.createElement("tr");
@@ -218,6 +304,9 @@ function renderTable(tableId, rows) {
       const v = row[col];
       if (typeof v === "number") {
         td.textContent = Number.isInteger(v) ? String(v) : v.toFixed(4);
+        if (col === "signal") {
+          td.className = v > 0 ? "val-pos" : v < 0 ? "val-neg" : "";
+        }
       } else {
         td.textContent = v === null || v === undefined ? "null" : String(v);
       }
@@ -227,38 +316,27 @@ function renderTable(tableId, rows) {
   }
 }
 
-function showBanner(id, message) {
+function showBanner(id, msg) {
   const el = document.getElementById(id);
-  if (!message) {
-    el.textContent = "";
-    el.classList.add("hidden");
-    return;
-  }
-  el.textContent = message;
-  el.classList.remove("hidden");
+  el.textContent = msg || "";
+  el.classList.toggle("hidden", !msg);
 }
 
 async function loadActiveDatasetPreview() {
   const preview = await fetchDatasetPreview(state.activeDatasetId);
   const info = preview.info;
-
-  document.getElementById("kpi-rows").textContent =
-    info.row_count !== null ? info.row_count.toLocaleString() : "--";
-  document.getElementById("kpi-span").textContent =
-    info.date_start && info.date_end ? `${info.date_start} -> ${info.date_end}` : "--";
-  document.getElementById("kpi-symbols").textContent =
-    info.symbol_count !== null ? `${info.symbol_count} tickers` : "1 series";
-  document.getElementById("kpi-sectors").textContent =
-    preview.sectors.length > 0
-      ? `${preview.sectors.length} sectors (${preview.sectors.slice(0, 3).join(", ")}${preview.sectors.length > 3 ? "..." : ""})`
-      : "No sector column";
+  state.activeDatasetName = info.name;
+  document.getElementById("legend-dataset").textContent = info.name;
+  document.getElementById("kpi-rows").textContent = info.row_count ? info.row_count.toLocaleString() : "--";
+  document.getElementById("kpi-span").textContent = info.date_start && info.date_end ? `${info.date_start} -> ${info.date_end}` : "--";
+  document.getElementById("kpi-symbols").textContent = info.symbol_count ? `${info.symbol_count} tickers` : "1 series";
+  document.getElementById("kpi-sectors").textContent = preview.sectors.length ? `${preview.sectors.length} sectors` : "Single / Unclassified";
 
   const ohlcvEl = document.getElementById("kpi-ohlcv");
   ohlcvEl.textContent = preview.ohlcv_valid ? "PASS" : "WARN";
-  ohlcvEl.style.color = preview.ohlcv_valid ? "var(--positive)" : "var(--warning)";
+  ohlcvEl.style.color = preview.ohlcv_valid ? "var(--tv-up)" : "var(--tv-warn)";
   document.getElementById("kpi-hash").textContent = `sha256: ${info.sha256_prefix || "--"}`;
-  document.getElementById("dataset-columns-caption").textContent = `Columns: ${info.columns.join(", ")}`;
-
+  document.getElementById("dataset-columns-caption").textContent = `Schema: [${info.columns.join(", ")}]`;
   renderTable("dataset-preview-table", preview.sample_rows);
 }
 
@@ -272,12 +350,29 @@ async function runFormulaEvaluation() {
   btn.disabled = true;
 
   try {
-    const res = await previewFormula(state.activeDatasetId, formula, 10);
-    document.getElementById("kpi-coverage").textContent = `${res.stats.coverage_pct.toFixed(1)}%`;
-    document.getElementById("kpi-latency").textContent = `${res.elapsed_ms.toFixed(2)} ms (${res.stats.valid_count.toLocaleString()} valid)`;
+    const res = await previewFormula(state.activeDatasetId, formula, {
+      symbol: state.activeSymbol,
+      chartBars: 160,
+      previewLimit: 24,
+    });
 
-    const cacheBadge = document.getElementById("cache-badge");
-    cacheBadge.textContent = res.cache_hit ? "LRU HIT" : "COMPUTED";
+    const symSel = document.getElementById("symbol-select");
+    symSel.textContent = "";
+    for (const s of res.available_symbols) {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      symSel.appendChild(opt);
+    }
+    state.activeSymbol = res.active_symbol;
+    if (res.active_symbol) symSel.value = res.active_symbol;
+
+    document.getElementById("legend-symbol").textContent = res.active_symbol || state.activeDatasetId;
+    document.getElementById("legend-formula").textContent = res.normalized_formula;
+    document.getElementById("cache-badge").textContent = res.cache_hit ? "LRU HIT" : "COMPUTED";
+    document.getElementById("editor-latency-hint").textContent = `${res.elapsed_ms.toFixed(2)} ms`;
+    document.getElementById("kpi-coverage").textContent = `${res.stats.coverage_pct.toFixed(1)}%`;
+    document.getElementById("kpi-latency").textContent = `${res.elapsed_ms.toFixed(2)} ms (${res.stats.valid_count.toLocaleString()} rows)`;
 
     if (res.notes && res.notes.length > 0) {
       showBanner("formula-notes-banner", res.notes.join(" | "));
@@ -287,39 +382,32 @@ async function runFormulaEvaluation() {
     stageList.textContent = "";
     for (const st of res.stages) {
       const li = document.createElement("li");
-      const scopeSpan = document.createElement("span");
-      scopeSpan.className = "stage-scope mono";
-      scopeSpan.textContent = st.window_over ? `${st.scope} [.over(${st.window_over})]` : st.scope;
-      li.appendChild(scopeSpan);
-      li.appendChild(document.createTextNode(st.description));
+      const tag = document.createElement("span");
+      tag.className = "stage-scope mono";
+      tag.textContent = st.window_over ? `${st.scope}:.over(${st.window_over})` : st.scope;
+      li.append(tag, document.createTextNode(st.description));
       stageList.appendChild(li);
     }
 
-    const statsGrid = document.getElementById("signal-stats-grid");
-    statsGrid.textContent = "";
-    const pairs = [
+    const distGrid = document.getElementById("signal-stats-grid");
+    distGrid.textContent = "";
+    const cells = [
       ["Mean", fmtNum(res.stats.mean)],
       ["Std Dev", fmtNum(res.stats.std)],
-      ["Median", fmtNum(res.stats.median)],
       ["Min", fmtNum(res.stats.min)],
-      ["IQR (Q25..Q75)", `${fmtNum(res.stats.q25, 3)} .. ${fmtNum(res.stats.q75, 3)}`],
+      ["Q25", fmtNum(res.stats.q25)],
+      ["Median", fmtNum(res.stats.median)],
       ["Max", fmtNum(res.stats.max)],
     ];
-    for (const [label, val] of pairs) {
-      const cell = document.createElement("div");
-      cell.className = "stat-cell";
-      const lbl = document.createElement("div");
-      lbl.className = "stat-cell-label";
-      lbl.textContent = label;
-      const vEl = document.createElement("div");
-      vEl.className = "stat-cell-val";
-      vEl.textContent = val;
-      cell.appendChild(lbl);
-      cell.appendChild(vEl);
-      statsGrid.appendChild(cell);
+    for (const [lbl, val] of cells) {
+      const box = document.createElement("div");
+      box.className = "stat-cell";
+      box.innerHTML = `<div class="stat-cell-label">${lbl}</div><div class="stat-cell-val">${val}</div>`;
+      distGrid.appendChild(box);
     }
 
     renderTable("signal-preview-table", res.sample_rows);
+    if (state.chart) state.chart.setData(res.chart_series);
   } catch (err) {
     showBanner("formula-error-banner", err.message || String(err));
   } finally {
@@ -327,7 +415,7 @@ async function runFormulaEvaluation() {
   }
 }
 
-async function refreshDatasetDropdown(selectIdToActivate = null) {
+async function refreshDatasetDropdown(selectId = null) {
   const dsRes = await fetchDatasets();
   const sel = document.getElementById("dataset-select");
   sel.textContent = "";
@@ -337,23 +425,25 @@ async function refreshDatasetDropdown(selectIdToActivate = null) {
     opt.textContent = ds.name;
     sel.appendChild(opt);
   }
-  state.activeDatasetId = selectIdToActivate || dsRes.default_dataset_id;
+  state.activeDatasetId = selectId || dsRes.default_dataset_id;
   sel.value = state.activeDatasetId;
 }
 
 async function bootstrap() {
-  initTheme();
-  initTabs();
-  initMobileSidebar();
+  initThemeAndDensity();
+  initModeAndSubTabs();
+  initResizableDrawer();
+  initFxModal();
+
+  const canvas = document.getElementById("tv-main-canvas");
+  state.chart = new TVDualChart(canvas, updateLegendBar);
 
   try {
     const [health, catalog] = await Promise.all([fetchHealth(), fetchCatalog()]);
     state.catalog = catalog;
     document.getElementById("engine-status-text").textContent =
-      `polars-anta v${health.polars_anta_version} | threads=${health.polars_max_threads}`;
-    document.getElementById("catalog-count-badge").textContent =
-      `${catalog.public_functions} fn / ${catalog.total_exports} exp`;
-
+      `polars-anta ${health.polars_anta_version} - ${health.polars_max_threads}T`;
+    document.getElementById("catalog-count-badge").textContent = String(catalog.public_functions);
     renderDomainChips();
     renderCatalogItems();
 
@@ -361,7 +451,7 @@ async function bootstrap() {
     await loadActiveDatasetPreview();
     await runFormulaEvaluation();
   } catch (err) {
-    showBanner("formula-error-banner", `Initialization failed: ${err.message}`);
+    showBanner("formula-error-banner", `Startup error: ${err.message}`);
   }
 
   document.getElementById("catalog-search").addEventListener("input", (ev) => {
@@ -371,20 +461,26 @@ async function bootstrap() {
 
   document.getElementById("dataset-select").addEventListener("change", async (ev) => {
     state.activeDatasetId = ev.target.value;
+    state.activeSymbol = null;
     const input = document.getElementById("formula-input");
-    if (state.activeDatasetId === "builtin_demo_futures" && input.value.includes("sector")) {
+    if (state.activeDatasetId !== "builtin_demo_panel" && input.value.includes("sector")) {
       input.value = "ema(close, 12) - ema(close, 26)";
     }
     await loadActiveDatasetPreview();
     await runFormulaEvaluation();
   });
 
+  document.getElementById("symbol-select").addEventListener("change", (ev) => {
+    state.activeSymbol = ev.target.value;
+    runFormulaEvaluation();
+  });
+
   document.getElementById("dataset-upload-input").addEventListener("change", async (ev) => {
     const file = ev.target.files && ev.target.files[0];
     if (!file) return;
-    showBanner("formula-error-banner", "");
     try {
       const uploaded = await uploadDatasetFile(file);
+      state.activeSymbol = null;
       await refreshDatasetDropdown(uploaded.dataset_id);
       await loadActiveDatasetPreview();
       await runFormulaEvaluation();
@@ -395,12 +491,15 @@ async function bootstrap() {
     }
   });
 
-  document.getElementById("formula-form").addEventListener("submit", (ev) => {
-    ev.preventDefault();
-    runFormulaEvaluation();
+  document.getElementById("btn-evaluate-formula").addEventListener("click", runFormulaEvaluation);
+  document.getElementById("formula-input").addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey || !ev.shiftKey) && ev.key === "Enter") {
+      ev.preventDefault();
+      runFormulaEvaluation();
+    }
   });
 
-  document.querySelectorAll(".preset-chip").forEach((chip) => {
+  document.querySelectorAll(".tv-preset-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
       document.getElementById("formula-input").value = chip.dataset.formula;
       runFormulaEvaluation();

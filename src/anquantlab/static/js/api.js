@@ -42,13 +42,19 @@ export async function uploadDatasetFile(file) {
   });
 }
 
-export async function previewFormula(datasetId, formula, previewLimit = 10) {
+export async function previewFormula(
+  datasetId,
+  formula,
+  { symbol = null, chartBars = 160, previewLimit = 24 } = {}
+) {
   return requestJson("/api/formula/preview", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       dataset_id: datasetId,
       formula,
+      symbol,
+      chart_bars: chartBars,
       preview_limit: previewLimit,
     }),
   });

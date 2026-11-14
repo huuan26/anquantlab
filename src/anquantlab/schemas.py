@@ -91,7 +91,9 @@ class DatasetPreviewResponse(BaseModel):
 class FormulaPreviewRequest(BaseModel):
     dataset_id: str = Field(default="builtin_demo_panel", min_length=1, max_length=128)
     formula: str = Field(..., min_length=1, max_length=1024)
-    preview_limit: int = Field(default=12, ge=1, le=100)
+    symbol: str | None = Field(default=None, max_length=64)
+    chart_bars: int = Field(default=160, ge=20, le=600)
+    preview_limit: int = Field(default=20, ge=1, le=100)
 
 
 class SignalSummaryStats(BaseModel):
@@ -115,13 +117,26 @@ class ExecutionStageInfo(BaseModel):
     description: str
 
 
+class ChartBarPoint(BaseModel):
+    t: str
+    o: float
+    h: float
+    l: float  # noqa: E741
+    c: float
+    v: float
+    s: float | None = None
+
+
 class FormulaPreviewResponse(BaseModel):
     dataset_id: str
     formula: str
     normalized_formula: str
     cache_hit: bool
     elapsed_ms: float
+    active_symbol: str | None = None
+    available_symbols: list[str] = Field(default_factory=list)
     notes: list[str] = Field(default_factory=list)
     stages: list[ExecutionStageInfo]
     stats: SignalSummaryStats
+    chart_series: list[ChartBarPoint] = Field(default_factory=list)
     sample_rows: list[dict[str, Any]]
