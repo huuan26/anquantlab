@@ -2,45 +2,45 @@
 
 :root,
 [data-theme="dark"] {
-  --tv-bg-canvas: #131722;
-  --tv-bg-pane: #1E222D;
-  --tv-bg-elevated: #2A2E39;
-  --tv-bg-hover: #363A45;
-  --tv-border: #2A2E39;
-  --tv-border-strong: #434651;
-  --tv-text-primary: #D1D4DC;
-  --tv-text-secondary: #9598A1;
-  --tv-text-muted: #868993;
-  --tv-blue: #2962FF;
-  --tv-blue-hover: #1E53E5;
-  --tv-blue-soft: rgba(41, 98, 255, 0.16);
-  --tv-up: #089981;
-  --tv-up-soft: rgba(8, 153, 129, 0.15);
-  --tv-down: #F23645;
-  --tv-down-soft: rgba(242, 54, 69, 0.16);
-  --tv-warn: #F7931A;
-  --tv-backdrop: rgba(9, 11, 17, 0.72);
+  --tv-bg-canvas: #0E1117;
+  --tv-bg-pane: #141821;
+  --tv-bg-elevated: #1B202C;
+  --tv-bg-hover: #232938;
+  --tv-border: rgba(255, 255, 255, 0.065);
+  --tv-border-strong: rgba(255, 255, 255, 0.14);
+  --tv-text-primary: #D8DEE9;
+  --tv-text-secondary: #8F98A8;
+  --tv-text-muted: #687182;
+  --tv-blue: #5A8DEE;
+  --tv-blue-hover: #4A7DE0;
+  --tv-blue-soft: rgba(90, 141, 238, 0.11);
+  --tv-up: #2E9E84;
+  --tv-up-soft: rgba(46, 158, 132, 0.10);
+  --tv-down: #C85A62;
+  --tv-down-soft: rgba(200, 90, 98, 0.11);
+  --tv-warn: #D48A3B;
+  --tv-backdrop: rgba(8, 10, 14, 0.72);
 }
 
 [data-theme="light"] {
-  --tv-bg-canvas: #FFFFFF;
-  --tv-bg-pane: #F8F9FD;
-  --tv-bg-elevated: #F0F3FA;
-  --tv-bg-hover: #E0E3EB;
-  --tv-border: #E0E3EB;
-  --tv-border-strong: #B2B5BE;
-  --tv-text-primary: #131722;
-  --tv-text-secondary: #434651;
-  --tv-text-muted: #5D606B;
-  --tv-blue: #2962FF;
-  --tv-blue-hover: #1E53E5;
-  --tv-blue-soft: rgba(41, 98, 255, 0.10);
-  --tv-up: #089981;
-  --tv-up-soft: rgba(8, 153, 129, 0.11);
-  --tv-down: #F23645;
-  --tv-down-soft: rgba(242, 54, 69, 0.11);
-  --tv-warn: #D97706;
-  --tv-backdrop: rgba(19, 23, 34, 0.45);
+  --tv-bg-canvas: #FAF9F5;
+  --tv-bg-pane: #F3F1EA;
+  --tv-bg-elevated: #EAE7DE;
+  --tv-bg-hover: #E1DDD2;
+  --tv-border: rgba(24, 28, 36, 0.09);
+  --tv-border-strong: rgba(24, 28, 36, 0.20);
+  --tv-text-primary: #1A1D24;
+  --tv-text-secondary: #525866;
+  --tv-text-muted: #767C8A;
+  --tv-blue: #2F5696;
+  --tv-blue-hover: #24457A;
+  --tv-blue-soft: rgba(47, 86, 150, 0.08);
+  --tv-up: #1F6E5C;
+  --tv-up-soft: rgba(31, 110, 92, 0.09);
+  --tv-down: #A93F48;
+  --tv-down-soft: rgba(169, 63, 72, 0.09);
+  --tv-warn: #B4691E;
+  --tv-backdrop: rgba(26, 29, 36, 0.42);
 }
 
 /* TradingView Typography Scale: Compact 12px (Default) vs Comfort 13.5px */
@@ -113,22 +113,22 @@ body {
 }
 
 .tv-icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   flex-shrink: 0;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.35;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .tv-icon-lg {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   fill: none;
   stroke: var(--tv-blue);
-  stroke-width: 1.75;
+  stroke-width: 1.35;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -189,9 +189,9 @@ body {
 .tv-brand {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 3px;
-  font-weight: 700;
+  gap: 5px;
+  padding: 0 4px;
+  font-weight: 600;
   font-size: var(--fs-sm);
   color: var(--tv-text-primary);
   letter-spacing: -0.01em;
@@ -227,15 +227,15 @@ body {
 
 .tv-select {
   background-color: var(--tv-bg-elevated);
-  border-color: var(--tv-border);
-  padding: 0 5px;
-  max-width: 106px;
+  border-color: transparent;
+  padding: 0 6px;
+  max-width: 120px;
 }
 
 .tv-symbol-select {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--tv-blue);
-  max-width: 64px;
+  max-width: 68px;
 }
 
 .tv-tool-btn {
@@ -277,14 +277,14 @@ body {
 
 .tv-mode-tab {
   height: 32px;
-  padding: 0 6px;
+  padding: 0 8px;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 1.5px solid transparent;
   background: transparent;
   color: var(--tv-text-secondary);
   font-family: inherit;
   font-size: var(--fs-xs);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   cursor: pointer;
   transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease;
@@ -292,11 +292,11 @@ body {
 
 .tv-mode-tab:hover {
   color: var(--tv-text-primary);
-  background-color: var(--tv-bg-elevated);
+  background-color: transparent;
 }
 
 .tv-mode-tab.active {
-  color: var(--tv-blue);
+  color: var(--tv-text-primary);
   border-bottom-color: var(--tv-blue);
 }
 
@@ -306,9 +306,9 @@ body {
   gap: 5px;
   padding: 2px 6px;
   border-radius: 4px;
-  background-color: var(--tv-bg-elevated);
+  background-color: transparent;
   font-size: 10.5px;
-  color: var(--tv-text-secondary);
+  color: var(--tv-text-muted);
 }
 
 .tv-dot {
@@ -357,8 +357,8 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 5px 10px;
-  background-color: var(--tv-bg-pane);
+  padding: 4px 10px;
+  background-color: var(--tv-bg-canvas);
   border-bottom: 1px solid var(--tv-border);
   min-width: 0;
   overflow: hidden;
@@ -399,18 +399,18 @@ textarea:focus-visible {
 }
 
 .tv-legend-sym {
-  font-size: var(--fs-md);
-  font-weight: 700;
+  font-size: var(--fs-sm);
+  font-weight: 600;
   color: var(--tv-text-primary);
 }
 
 .tv-legend-meta {
-  color: var(--tv-text-secondary);
+  display: none;
 }
 
 .tv-legend-ind-tag {
-  font-weight: 600;
-  color: var(--tv-blue);
+  font-weight: 500;
+  color: var(--tv-text-muted);
 }
 
 .tv-legend-formula {
@@ -418,17 +418,17 @@ textarea:focus-visible {
 }
 
 .tv-legend-sig {
-  font-weight: 600;
+  font-weight: 500;
   color: var(--tv-blue);
 }
 
 .tv-micro-tag {
   font-size: 10px;
-  padding: 0 4px;
+  padding: 1px 6px;
   border-radius: 3px;
-  background-color: var(--tv-blue-soft);
-  color: var(--tv-blue);
-  font-weight: 600;
+  background-color: var(--tv-bg-elevated);
+  color: var(--tv-text-muted);
+  font-weight: 500;
 }
 
 .tv-placeholder-pane {
@@ -460,19 +460,21 @@ textarea:focus-visible {
   line-height: 1.5;
 }
 
-/* Horizontal Drag Splitter */
+/* Horizontal Drag Splitter (hairline track) */
 .tv-splitter {
   height: 5px;
   flex-shrink: 0;
-  background-color: var(--tv-border);
+  background-color: var(--tv-bg-canvas);
+  border-top: 1px solid var(--tv-border);
   cursor: ns-resize;
   touch-action: none;
-  transition: background-color 150ms ease;
+  transition: border-color 150ms ease, background-color 150ms ease;
 }
 
 .tv-splitter:hover,
 .tv-splitter.dragging {
-  background-color: var(--tv-blue);
+  border-top-color: var(--tv-blue);
+  background-color: var(--tv-blue-soft);
 }
 
 /* Bottom Docked Drawer (Pine Editor + Strategy Tester) */
@@ -542,12 +544,12 @@ textarea:focus-visible {
   height: 31px;
   padding: 0 8px;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 1.5px solid transparent;
   background: transparent;
   color: var(--tv-text-secondary);
   font-family: inherit;
   font-size: var(--fs-xs);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: color 150ms ease;
 }
@@ -557,7 +559,7 @@ textarea:focus-visible {
 }
 
 .tv-subtab.active {
-  color: var(--tv-blue);
+  color: var(--tv-text-primary);
   border-bottom-color: var(--tv-blue);
 }
 
@@ -565,16 +567,17 @@ textarea:focus-visible {
   height: 22px;
   padding: 0 7px;
   border-radius: 3px;
-  border: 1px solid var(--tv-border);
+  border: 1px solid transparent;
   background-color: var(--tv-bg-elevated);
   color: var(--tv-text-secondary);
+  font-family: inherit;
   font-size: var(--fs-xs);
   cursor: pointer;
   transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
 }
 
 .tv-preset-chip:hover {
-  border-color: var(--tv-blue);
+  border-color: var(--tv-border-strong);
   color: var(--tv-text-primary);
 }
 
@@ -590,7 +593,7 @@ textarea:focus-visible {
   color: #FFFFFF;
   font-family: inherit;
   font-size: var(--fs-xs);
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: background-color 150ms ease;
 }
@@ -1013,7 +1016,7 @@ textarea:focus-visible {
 .tv-forensics-pill {
   pointer-events: auto;
   cursor: pointer;
-  border: 1px solid var(--tv-border-strong);
+  border: none;
   background-color: var(--tv-bg-pane);
   color: var(--tv-text-secondary);
   font-family: inherit;
@@ -1025,13 +1028,15 @@ textarea:focus-visible {
 }
 
 .tv-inline-badge {
-  margin-left: 5px;
+  margin-left: 4px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 500;
+  color: var(--tv-text-muted);
 }
 
 .tv-preset-flow {
-  border-color: var(--tv-blue);
+  color: var(--tv-blue);
+}
   color: var(--tv-blue);
 }
 
@@ -1154,12 +1159,14 @@ textarea:focus-visible {
 
 /* Phase 2: Tab 1 Backtest & Realtime Cost/Buffer Lab, Holdout Vault & Trial Ledger */
 .tv-vault-sealed {
-  border-color: var(--tv-up);
+  background-color: var(--tv-up-soft);
+  border-color: transparent;
   color: var(--tv-up);
 }
 
 .tv-vault-open {
-  border-color: var(--tv-warn);
+  background-color: rgba(212, 138, 59, 0.14);
+  border-color: transparent;
   color: var(--tv-warn);
 }
 
@@ -1202,11 +1209,9 @@ textarea:focus-visible {
 
 .tv-rail-lbl {
   display: block;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--tv-text-muted);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tv-text-secondary);
   margin-bottom: 2px;
 }
 
@@ -1317,7 +1322,7 @@ textarea:focus-visible {
   overflow: hidden;
   background-color: var(--tv-bg-pane);
   border: none;
-  border-top: 2px solid transparent;
+  border-top: 1.5px solid transparent;
   padding: 5px 10px;
   text-align: left;
   color: var(--tv-text-primary);
@@ -1346,14 +1351,15 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--fs-sm);
-  font-weight: 600;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--tv-text-secondary);
   margin-bottom: 2px;
 }
 
 .tv-xr-card-metrics {
   font-size: 10.5px;
-  color: var(--tv-text-secondary);
+  color: var(--tv-text-muted);
   line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
@@ -1366,7 +1372,7 @@ textarea:focus-visible {
   justify-content: space-between;
   gap: 8px;
   padding: 4px 10px;
-  background-color: var(--tv-bg-pane);
+  background-color: var(--tv-bg-canvas);
   border-bottom: 1px solid var(--tv-border);
   flex-shrink: 0;
 }
@@ -1397,8 +1403,8 @@ textarea:focus-visible {
 
 .tv-xr-verdict {
   font-size: var(--fs-xs);
-  font-weight: 600;
-  max-width: 340px;
+  font-weight: 500;
+  max-width: 240px;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -1420,7 +1426,7 @@ textarea:focus-visible {
 
 /* Phase 5: Production Polars Export & Alpha Passport Modal */
 .tv-export-btn {
-  border-color: var(--tv-blue);
+  border-color: transparent;
   color: var(--tv-text-primary);
 }
 

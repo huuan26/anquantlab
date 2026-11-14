@@ -3,6 +3,7 @@
  */
 
 import { runXRay } from "./api.js";
+import { syncVaultAndLedgerUi } from "./forensics_hub.js";
 import { TVXRayChart } from "./tv_xray_chart.js";
 
 function fmtSigned(v, digits = 3) {
@@ -165,27 +166,16 @@ export class XRayLabController {
       btnCic.classList.remove("active");
     }
 
-    // Update Holdout Vault button & Trial Ledger peeks
-    const vaultBtn = document.getElementById("btn-holdout-vault");
-    const tl = res.trial_ledger;
-    if (res.holdout_locked) {
-      vaultBtn.textContent = "Vault: SEALED";
-      vaultBtn.title = `Holdout Vault Sealed (${res.is_bars} IS bars)`;
-      vaultBtn.className = "tv-tool-btn tv-vault-sealed num";
-    } else {
-      vaultBtn.textContent = `Vault: OPEN (${tl.holdout_peeks})`;
-      vaultBtn.title = `OOS Holdout Unsealed (Peeks: ${tl.holdout_peeks})`;
-      vaultBtn.className = "tv-tool-btn tv-vault-open num";
-    }
+    syncVaultAndLedgerUi(res);
 
-    const hitTag = res.basis_cache_hit ? "BASIS HIT" : "COLD";
+    const hitTag = res.basis_cache_hit ? "BASIS" : "COLD";
     document.getElementById("xr-rail-latency").textContent =
-      `${res.elapsed_ms.toFixed(1)} ms (${hitTag}) | ${res.is_panel ? "Panel CS" : "Single TS"}`;
+      `${res.elapsed_ms.toFixed(1)}ms | ${hitTag} | ${res.is_panel ? "Panel CS" : "Single TS"}`;
 
     const sp = res.spanning;
     const verdictEl = document.getElementById("xr-verdict-banner");
-    verdictEl.textContent =
-      `${sp.verdict}: ${sp.verdict_summary}`;
+    verdictEl.textContent = sp.verdict.replace(/_/g, " ");
+    verdictEl.title = `${sp.verdict}: ${sp.verdict_summary}`;
     verdictEl.className = `tv-xr-verdict num ${
       sp.verdict === "DISTINCT_ALPHA"
         ? "val-pos"
@@ -231,9 +221,7 @@ export class XRayLabController {
 
       const row2 = document.createElement("div");
       row2.className = "tv-xr-card-metrics num";
-      const tiltPct = (st.max_abs_sector_tilt * 100).toFixed(1);
-      row2.textContent =
-        `Q5-Q1 ${fmtSigned(st.top_minus_bottom_bps, 1)}bp | Turn ${st.turnover_mean.toFixed(2)} | Tilt ${tiltPct}%`;
+      row2.textContent = `Q5-Q1 ${fmtSigned(st.top_minus_bottom_bps, 1)}bp | Turn ${st.turnover_mean.toFixed(2)}`;
 
       card.append(hdr, row1, row2);
       strip.appendChild(card);

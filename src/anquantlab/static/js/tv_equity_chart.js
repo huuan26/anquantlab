@@ -4,47 +4,7 @@
  * Right Stage: Breakeven Transaction Cost Curve + Round-Trip MAE/MFE Excursion Scatter.
  */
 
-import { attachCanvasPointerEvents } from "./canvas_utils.js";
-
-function getPalette() {
-  const theme = document.documentElement.getAttribute("data-theme") || "dark";
-  if (theme === "light") {
-    return {
-      bg: "#FFFFFF",
-      pane: "#F8F9FD",
-      grid: "#F0F3FA",
-      border: "#E0E3EB",
-      text: "#131722",
-      muted: "#5D606B",
-      blue: "#2962FF",
-      blueFill: "rgba(41, 98, 255, 0.10)",
-      up: "#089981",
-      down: "#F23645",
-      downFill: "rgba(242, 54, 69, 0.16)",
-      warn: "#D97706",
-      oosTint: "rgba(217, 119, 6, 0.06)",
-      gross: "#9598A1",
-      bench: "#B2B5BE",
-    };
-  }
-  return {
-    bg: "#131722",
-    pane: "#1E222D",
-    grid: "#1E222D",
-    border: "#2A2E39",
-    text: "#D1D4DC",
-    muted: "#868993",
-    blue: "#2962FF",
-    blueFill: "rgba(41, 98, 255, 0.15)",
-    up: "#089981",
-    down: "#F23645",
-    downFill: "rgba(242, 54, 69, 0.20)",
-    warn: "#F7931A",
-    oosTint: "rgba(247, 147, 26, 0.08)",
-    gross: "#9598A1",
-    bench: "#5D606B",
-  };
-}
+import { attachCanvasPointerEvents, fillVerticalFade, readChartPalette } from "./canvas_utils.js";
 
 export class TVEquityLabChart {
   constructor(canvas, onHoverPoint) {
@@ -116,10 +76,10 @@ export class TVEquityLabChart {
 
     const ctx = this.ctx;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const pal = getPalette();
+    const pal = readChartPalette();
     ctx.fillStyle = pal.bg;
     ctx.fillRect(0, 0, w, h);
-    ctx.font = '11px "Inter", "IBM Plex Sans", -apple-system, sans-serif';
+    ctx.font = '10.5px "Inter", "IBM Plex Sans", -apple-system, sans-serif';
 
     const showSide = w >= 660;
     const stackVertical = !showSide && h >= 460;
@@ -239,12 +199,11 @@ export class TVEquityLabChart {
     ctx.lineTo(x0 + w, eqH + 0.5);
     ctx.stroke();
 
-    // Benchmark curve
-    this._strokeLine(ctx, n, xAt, (i) => yEq(this.equity[i].bench_eq), pal.bench, 1.1, []);
-    // Gross curve (dashed)
-    this._strokeLine(ctx, n, xAt, (i) => yEq(this.equity[i].gross_eq), pal.gross, 1.2, [4, 3]);
+    // Benchmark & Gross curves (hairline)
+    this._strokeLine(ctx, n, xAt, (i) => yEq(this.equity[i].bench_eq), pal.bench, 1.0, []);
+    this._strokeLine(ctx, n, xAt, (i) => yEq(this.equity[i].gross_eq), pal.gross, 1.0, [3, 3]);
 
-    // Net Equity curve + soft fill
+    // Net Equity curve + subtle vertical gradient fade
     ctx.beginPath();
     for (let i = 0; i < n; i++) {
       const px = xAt(i);
@@ -253,16 +212,16 @@ export class TVEquityLabChart {
       else ctx.lineTo(px, py);
     }
     ctx.strokeStyle = pal.blue;
-    ctx.lineWidth = 1.9;
+    ctx.lineWidth = 1.35;
     ctx.stroke();
 
     ctx.lineTo(xAt(n - 1), eqH);
     ctx.lineTo(xAt(0), eqH);
     ctx.closePath();
-    ctx.fillStyle = pal.blueFill;
+    ctx.fillStyle = fillVerticalFade(ctx, y0 + 10, eqH, pal.blueTop, pal.blueBot);
     ctx.fill();
 
-    // Underwater Drawdown fill
+    // Underwater Drawdown subtle gradient fill
     const zeroDdY = yDd(0);
     ctx.beginPath();
     ctx.moveTo(xAt(0), zeroDdY);
@@ -271,9 +230,9 @@ export class TVEquityLabChart {
     }
     ctx.lineTo(xAt(n - 1), zeroDdY);
     ctx.closePath();
-    ctx.fillStyle = pal.downFill;
+    ctx.fillStyle = fillVerticalFade(ctx, zeroDdY, yDd(ddMin), pal.downTop, pal.downBot);
     ctx.fill();
-    this._strokeLine(ctx, n, xAt, (i) => yDd(this.equity[i].dd), pal.down, 1.2, []);
+    this._strokeLine(ctx, n, xAt, (i) => yDd(this.equity[i].dd), pal.down, 1.0, []);
 
     ctx.fillStyle = pal.muted;
     ctx.fillText("0.0%", x0 + plotW + 5, zeroDdY + 4);
@@ -292,7 +251,8 @@ export class TVEquityLabChart {
     if (this.mousePos && this.mousePos.x >= x0 && this.mousePos.x <= x0 + plotW) {
       hoverI = Math.max(0, Math.min(n - 1, Math.round(((this.mousePos.x - x0) / plotW) * (n - 1))));
       const hx = Math.round(xAt(hoverI)) + 0.5;
-      ctx.strokeStyle = pal.muted;
+      ctx.strokeStyle = pal.crosshair;
+      ctx.lineWidth = 1;
       ctx.setLineDash([3, 3]);
       ctx.beginPath();
       ctx.moveTo(hx, y0);
@@ -322,8 +282,8 @@ export class TVEquityLabChart {
   }
 
   _drawCostCurve(ctx, pal, x0, y0, w, h) {
-    ctx.fillStyle = pal.text;
-    ctx.fillText("Breakeven Cost Curve (Sharpe vs bps)", x0 + 10, y0 + 16);
+    ctx.fillStyle = pal.sub;
+    ctx.fillText("Cost Curve (SR vs bps)", x0 + 10, y0 + 16);
     if (!this.costCurve || this.costCurve.length < 2) return;
 
     const padL = 34;
@@ -359,9 +319,9 @@ export class TVEquityLabChart {
     ctx.fillText("0", x0 + padL - 2, y0 + h - 5);
     ctx.fillText(`${maxBps} bps`, x0 + padL + pw - 36, y0 + h - 5);
 
-    // Cost curve polyline
+    // Cost curve polyline (hairline)
     ctx.strokeStyle = pal.up;
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.3;
     ctx.beginPath();
     this.costCurve.forEach((pt, idx) => {
       const px = xBps(pt.cost_bps);
@@ -373,18 +333,19 @@ export class TVEquityLabChart {
 
     // Current total cost marker
     const curX = Math.round(xBps(this.meta.currentCostBps)) + 0.5;
-    ctx.strokeStyle = pal.warn;
+    ctx.strokeStyle = pal.warnSoft;
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(curX, y0 + padT);
     ctx.lineTo(curX, y0 + padT + ph);
     ctx.stroke();
     ctx.fillStyle = pal.warn;
-    ctx.fillText(`Now ${this.meta.currentCostBps.toFixed(1)}`, Math.min(x0 + w - 58, curX + 3), y0 + padT + 10);
+    ctx.fillText(`Now ${this.meta.currentCostBps.toFixed(1)}`, Math.min(x0 + w - 58, curX + 4), y0 + padT + 10);
   }
 
   _drawMaeMfeScatter(ctx, pal, x0, y0, w, h) {
-    ctx.fillStyle = pal.text;
-    ctx.fillText("Round-Trip Excursion: |MAE| vs MFE (%)", x0 + 10, y0 + 16);
+    ctx.fillStyle = pal.sub;
+    ctx.fillText("Excursion (|MAE| vs MFE)", x0 + 10, y0 + 16);
 
     const padL = 34;
     const padR = 12;
@@ -420,9 +381,9 @@ export class TVEquityLabChart {
     for (const tr of this.trades) {
       const px = xMae(tr.mae);
       const py = yMfe(tr.mfe);
-      ctx.fillStyle = tr.net_return > 0 ? pal.up : pal.down;
+      ctx.fillStyle = tr.net_return > 0 ? pal.upSoft : pal.downSoft;
       ctx.beginPath();
-      ctx.arc(px, py, 2.8, 0, Math.PI * 2);
+      ctx.arc(px, py, 2.2, 0, Math.PI * 2);
       ctx.fill();
     }
 

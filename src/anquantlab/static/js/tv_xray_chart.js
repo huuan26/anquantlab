@@ -3,30 +3,7 @@
  * Zero external libraries, zero emojis, pixel-snapped hairlines, Dark/Light theme aware.
  */
 
-import { drawQuadrantHeader, fitCanvasText, renderFourPanels } from "./canvas_utils.js";
-
-function readPalette() {
-  const cs = getComputedStyle(document.documentElement);
-  const g = (k, fb) => cs.getPropertyValue(k).trim() || fb;
-  return {
-    bg: g("--tv-bg-canvas", "#131722"),
-    pane: g("--tv-bg-pane", "#1E222D"),
-    elev: g("--tv-bg-elevated", "#2A2E39"),
-    border: g("--tv-border", "#2A2E39"),
-    borderStrong: g("--tv-border-strong", "#434651"),
-    text: g("--tv-text-primary", "#D1D4DC"),
-    sub: g("--tv-text-secondary", "#9598A1"),
-    muted: g("--tv-text-muted", "#868993"),
-    blue: g("--tv-blue", "#2962FF"),
-    up: g("--tv-up", "#089981"),
-    down: g("--tv-down", "#F23645"),
-    warn: g("--tv-warn", "#F7931A"),
-  };
-}
-
-function snap(v) {
-  return Math.floor(v) + 0.5;
-}
+import { drawQuadrantHeader, fillVerticalFade, fitCanvasText, readChartPalette, renderFourPanels, snapPx as snap } from "./canvas_utils.js";
 
 export class TVXRayChart {
   constructor(canvas) {
@@ -82,7 +59,7 @@ export class TVXRayChart {
     const ctx = this.ctx;
     ctx.save();
     ctx.scale(dpr, dpr);
-    const pal = readPalette();
+    const pal = readChartPalette();
 
     ctx.fillStyle = pal.bg;
     ctx.fillRect(0, 0, w, h);
@@ -120,8 +97,8 @@ export class TVXRayChart {
       x,
       y,
       w,
-      `${st.label} - Distribution & Box-Quantiles`,
-      `Skew ${st.skew.toFixed(2)} | ExKurt ${st.excess_kurtosis.toFixed(2)}`,
+      `${st.label} - Distribution`,
+      `Skew ${st.skew.toFixed(2)} | Kurt ${st.excess_kurtosis.toFixed(2)}`,
       pal
     );
 
@@ -159,14 +136,14 @@ export class TVXRayChart {
     ctx.lineTo(snap(x95), boxY + 4);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(41, 98, 255, 0.24)";
-    ctx.strokeStyle = pal.blue;
+    ctx.fillStyle = pal.blueSoft;
+    ctx.strokeStyle = pal.blueBar;
     const iqrW = Math.max(2, x75 - x25);
-    ctx.fillRect(x25, boxY - 5, iqrW, 10);
-    ctx.strokeRect(snap(x25), snap(boxY - 5), Math.floor(iqrW), 10);
+    ctx.fillRect(x25, boxY - 4.5, iqrW, 9);
+    ctx.strokeRect(snap(x25), snap(boxY - 4.5), Math.floor(iqrW), 9);
 
     ctx.strokeStyle = pal.warn;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
     ctx.moveTo(snap(xMed), boxY - 6);
     ctx.lineTo(snap(xMed), boxY + 6);
@@ -193,7 +170,7 @@ export class TVXRayChart {
       const bx = padL + i * binW + 1;
       const by = histBot - bh;
       const midVal = 0.5 * (edges[i] + edges[i + 1]);
-      ctx.fillStyle = midVal >= 0 ? "rgba(41, 98, 255, 0.72)" : "rgba(41, 98, 255, 0.45)";
+      ctx.fillStyle = midVal >= 0 ? pal.blueBar : pal.blueBarSoft;
       ctx.fillRect(bx, by, Math.max(1.5, binW - 2), bh);
     }
 
@@ -222,8 +199,8 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "Quantile Return Spread (Q1..Q5) & IC Decay",
-      `Q5-Q1 ${st.top_minus_bottom_bps >= 0 ? "+" : ""}${st.top_minus_bottom_bps.toFixed(1)} bps | ${hlTxt}`,
+      "Quantiles & IC Decay",
+      `Q5-Q1 ${st.top_minus_bottom_bps >= 0 ? "+" : ""}${st.top_minus_bottom_bps.toFixed(1)}bp | ${hlTxt}`,
       pal
     );
 
@@ -255,7 +232,7 @@ export class TVXRayChart {
         const barH = (Math.abs(val) / maxAbs) * (plotH * 0.42);
         const bx = qL + i * slotW + slotW * 0.16;
         const bw = Math.max(8, slotW * 0.68);
-        ctx.fillStyle = val >= 0 ? pal.up : pal.down;
+        ctx.fillStyle = val >= 0 ? pal.upSoft : pal.downSoft;
         if (val >= 0) {
           ctx.fillRect(bx, zeroY - barH, bw, barH);
         } else {
@@ -297,7 +274,7 @@ export class TVXRayChart {
     if (dec.length >= 2) {
       const maxIc = Math.max(0.01, ...dec.map((d) => Math.abs(d.ic_mean)));
       ctx.strokeStyle = pal.blue;
-      ctx.lineWidth = 1.8;
+      ctx.lineWidth = 1.35;
       ctx.beginPath();
       dec.forEach((d, idx) => {
         const px = dL + (idx / (dec.length - 1)) * dW;
@@ -312,7 +289,7 @@ export class TVXRayChart {
         const py = zeroY - (d.ic_mean / maxIc) * (plotH * 0.4);
         ctx.fillStyle = Math.abs(d.nw_t_stat) >= 1.96 ? pal.up : pal.blue;
         ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.arc(px, py, 2.3, 0, Math.PI * 2);
         ctx.fill();
         ctx.font = "10px 'JetBrains Mono', monospace";
         ctx.fillStyle = pal.muted;
@@ -330,8 +307,8 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "Sector Net Exposure (L1 Portfolio Tilt)",
-      `Max |Tilt| ${(st.max_abs_sector_tilt * 100).toFixed(2)}%`,
+      "Sector Net Tilt",
+      `Max ${(st.max_abs_sector_tilt * 100).toFixed(2)}%`,
       pal
     );
 
@@ -361,8 +338,8 @@ export class TVXRayChart {
       ctx.fillText(String(it.sector).slice(0, 12), padL - 8, ry + 3.5);
 
       const len = (Math.abs(it.net_exposure) / maxTilt) * (barW * 0.46);
-      const bh = Math.max(6, rowH - 6);
-      ctx.fillStyle = it.net_exposure >= 0 ? pal.up : pal.down;
+      const bh = Math.max(6, Math.min(12, rowH - 7));
+      ctx.fillStyle = it.net_exposure >= 0 ? pal.upSoft : pal.downSoft;
       if (Math.abs(it.net_exposure) < 1e-5) {
         ctx.fillStyle = pal.borderStrong;
         ctx.fillRect(midX - 1, ry - bh / 2, 2, bh);
@@ -388,8 +365,8 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "Cumulative Information Coefficient (Time-Series)",
-      `IC ${st.ic_mean >= 0 ? "+" : ""}${st.ic_mean.toFixed(4)} | NW t ${st.nw_t_stat >= 0 ? "+" : ""}${st.nw_t_stat.toFixed(2)}`,
+      "Cumulative IC",
+      `IC ${st.ic_mean >= 0 ? "+" : ""}${st.ic_mean.toFixed(4)} | t ${st.nw_t_stat >= 0 ? "+" : ""}${st.nw_t_stat.toFixed(2)}`,
       pal
     );
 
@@ -422,8 +399,9 @@ export class TVXRayChart {
     ctx.lineTo(padR, snap(zeroY));
     ctx.stroke();
 
-    ctx.strokeStyle = cums[cums.length - 1] >= 0 ? pal.up : pal.down;
-    ctx.lineWidth = 1.8;
+    const lastCum = cums[cums.length - 1];
+    ctx.strokeStyle = lastCum >= 0 ? pal.up : pal.down;
+    ctx.lineWidth = 1.35;
     ctx.beginPath();
     pts.forEach((p, idx) => {
       const px = padL + (idx / (pts.length - 1)) * plotW;
@@ -432,6 +410,18 @@ export class TVXRayChart {
       else ctx.lineTo(px, py);
     });
     ctx.stroke();
+
+    ctx.lineTo(padL + plotW, zeroY);
+    ctx.lineTo(padL, zeroY);
+    ctx.closePath();
+    ctx.fillStyle = fillVerticalFade(
+      ctx,
+      topY,
+      botY,
+      lastCum >= 0 ? "rgba(46, 158, 132, 0.08)" : pal.downTop,
+      lastCum >= 0 ? "rgba(46, 158, 132, 0.00)" : pal.downBot
+    );
+    ctx.fill();
 
     ctx.font = "10px 'JetBrains Mono', monospace";
     ctx.fillStyle = pal.muted;
@@ -453,7 +443,7 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "5-Factor Zoo Spanning Check (OLS + Driscoll-Kraay)",
+      "5-Factor Spanning",
       sp.verdict.replace("_", " "),
       pal
     );
@@ -462,15 +452,15 @@ export class TVXRayChart {
     const padR = x + w - 14;
     const fullW = Math.max(40, padR - padL);
 
-    // Stacked R^2 vs Pure Orthogonal Alpha Meter
+    // Stacked R^2 vs Pure Orthogonal Alpha Meter (slim 9px hairline track)
     const meterY = y + 26;
-    const meterH = 13;
+    const meterH = 9;
     const spanW = Math.round(fullW * Math.max(0, Math.min(1, sp.spanning_r2)));
     const orthW = Math.max(0, fullW - spanW);
 
-    ctx.fillStyle = pal.warn;
+    ctx.fillStyle = pal.warnSoft;
     ctx.fillRect(padL, meterY, spanW, meterH);
-    ctx.fillStyle = pal.up;
+    ctx.fillStyle = pal.upSoft;
     ctx.fillRect(padL + spanW, meterY, orthW, meterH);
 
     ctx.font = "10px 'JetBrains Mono', monospace";
@@ -515,9 +505,9 @@ export class TVXRayChart {
       ctx.fillText(fitCanvasText(ctx, ld.factor_label, labelW - 10), barL - 8, ry + 3.5);
 
       const len = (Math.abs(ld.beta) / maxBeta) * (barW * 0.46);
-      const bh = Math.max(6, rowH - 6);
-      ctx.fillStyle = ld.beta >= 0 ? pal.blue : pal.down;
-      if (!ld.selected) ctx.globalAlpha = 0.4;
+      const bh = Math.max(6, Math.min(12, rowH - 7));
+      ctx.fillStyle = ld.beta >= 0 ? pal.blueBar : pal.downSoft;
+      if (!ld.selected) ctx.globalAlpha = 0.35;
       if (ld.beta >= 0) ctx.fillRect(midX, ry - bh / 2, len, bh);
       else ctx.fillRect(midX - len, ry - bh / 2, len, bh);
       ctx.globalAlpha = 1.0;

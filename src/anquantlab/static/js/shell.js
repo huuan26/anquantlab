@@ -456,7 +456,7 @@ async function runFormulaEvaluation() {
 
     syncSymbolSelect(res.available_symbols, res.active_symbol);
     document.getElementById("legend-formula").textContent = res.normalized_formula;
-    document.getElementById("cache-badge").textContent = res.cache_hit ? "LRU HIT" : "COMPUTED";
+    document.getElementById("cache-badge").textContent = res.cache_hit ? "LRU" : "LIVE";
     document.getElementById("editor-latency-hint").textContent = `${res.elapsed_ms.toFixed(2)} ms`;
     document.getElementById("kpi-coverage").textContent = `${res.stats.coverage_pct.toFixed(1)}%`;
     document.getElementById("kpi-latency").textContent = `${res.elapsed_ms.toFixed(2)} ms (${res.stats.valid_count.toLocaleString()} rows)`;
@@ -608,8 +608,10 @@ async function bootstrap() {
   try {
     const [health, catalog] = await Promise.all([fetchHealth(), fetchCatalog()]);
     state.catalog = catalog;
-    document.getElementById("engine-status-text").textContent =
-      `polars-anta ${health.polars_anta_version} - ${health.polars_max_threads}T`;
+    const engText = `polars-anta ${health.polars_anta_version} (${health.polars_max_threads}T)`;
+    document.getElementById("engine-status-text").textContent = engText;
+    const engPill = document.getElementById("engine-status-pill");
+    if (engPill) engPill.title = `Engine active: ${engText}`;
     document.getElementById("catalog-count-badge").textContent = String(catalog.public_functions);
     renderDomainChips();
     renderCatalogItems();

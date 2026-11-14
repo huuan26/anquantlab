@@ -4,6 +4,7 @@
  */
 
 import { runBacktest } from "./api.js";
+import { syncVaultAndLedgerUi } from "./forensics_hub.js";
 import { TVEquityLabChart } from "./tv_equity_chart.js";
 
 const FRICTION_PRESETS = {
@@ -243,7 +244,8 @@ export class BacktestLabController {
     const grossPct = ((pt.gross_eq - 1) * 100).toFixed(2);
     const benchPct = ((pt.bench_eq - 1) * 100).toFixed(2);
     const ddPct = (pt.dd * 100).toFixed(2);
-    el.textContent = `${String(pt.t).slice(0, 16)} | Net ${netPct}% | Gross ${grossPct}% | Bench ${benchPct}% | DD ${ddPct}%`;
+    el.textContent = `${String(pt.t).slice(0, 10)} | Net ${netPct}% | Gross ${grossPct}% | DD ${ddPct}%`;
+    el.title = `Time ${String(pt.t).slice(0, 16)} | Bench ${benchPct}%`;
     el.style.color = pt.net_eq >= 1.0 ? "var(--tv-up)" : "var(--tv-down)";
   }
 
@@ -259,28 +261,13 @@ export class BacktestLabController {
       this.candleChart.setTrades(res.trades);
     }
 
-    // Topbar Holdout Vault button & Trial Ledger pill
-    const vaultBtn = document.getElementById("btn-holdout-vault");
-    const tl = res.trial_ledger;
-    if (res.holdout_locked) {
-      vaultBtn.textContent = "Vault: SEALED";
-      vaultBtn.title = `Holdout Vault Sealed (${res.is_bars} IS bars)`;
-      vaultBtn.className = "tv-tool-btn tv-vault-sealed num";
-    } else {
-      vaultBtn.textContent = `Vault: OPEN (${tl.holdout_peeks})`;
-      vaultBtn.title = `OOS Holdout Unsealed (Peeks: ${tl.holdout_peeks})`;
-      vaultBtn.className = "tv-tool-btn tv-vault-open num";
-    }
-
     const m = res.metrics;
-    const ledgerText = document.getElementById("trial-ledger-text");
-    ledgerText.textContent =
-      `Trials ${tl.unique_trials} | N_eff ${tl.effective_n_trials.toFixed(1)} | DSR ${(m.live_dsr * 100).toFixed(1)}%`;
+    syncVaultAndLedgerUi(res, `${(m.live_dsr * 100).toFixed(1)}%`);
 
     // Sidebar latency & effective spread footer
-    const hitTag = res.position_cache_hit ? "POS HIT" : res.signal_cache_hit ? "SIG HIT" : "COLD";
+    const hitTag = res.position_cache_hit ? "POS" : res.signal_cache_hit ? "SIG" : "COLD";
     document.getElementById("bt-rail-latency").textContent =
-      `${res.elapsed_ms.toFixed(1)} ms (${hitTag}) | Eff Slip ${res.effective_slippage_bps_mean.toFixed(1)} bps`;
+      `${res.elapsed_ms.toFixed(1)}ms | ${hitTag} | Slip ${res.effective_slippage_bps_mean.toFixed(1)}bp`;
 
     // Bottom Drawer Subpanel: Performance & Tail Risk (12 KPI cells)
     this._renderSummaryCards(m, res);

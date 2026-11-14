@@ -47,35 +47,33 @@
             <path d="M3 12h18" />
             <path d="M12 3a14.5 14.5 0 010 18 14.5 14.5 0 010-18z" />
           </svg>
-          <span>Public<span class="tv-hide-compact"> Data</span></span>
-          <span class="tv-kbd tv-kbd-hint num">0-Key</span>
+          <span>Public</span>
         </button>
 
         <span class="tv-sep" aria-hidden="true"></span>
 
         <!-- TradingView fx Indicators Trigger -->
-        <button id="btn-open-fx" type="button" class="tv-tool-btn tv-fx-btn" aria-haspopup="dialog" aria-controls="fx-modal">
+        <button id="btn-open-fx" type="button" class="tv-tool-btn tv-fx-btn" aria-haspopup="dialog" aria-controls="fx-modal" title="Open causal formula function catalog (Ctrl+K)">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 19c-2 0-3-1-3-3V8a4 4 0 014-4h1" />
             <path d="M5 11h6" />
             <path d="M14 10l6 8m0-8l-6 8" />
           </svg>
           <span>Indicators</span>
-          <span id="catalog-count-badge" class="tv-kbd tv-hide-compact num">223</span>
-          <span class="tv-kbd tv-kbd-hint">Ctrl+K</span>
+          <span id="catalog-count-badge" class="sr-only">223</span>
         </button>
       </div>
 
       <!-- 3-Tab Research Mode Switcher -->
       <nav class="tv-mode-tabs" role="tablist" aria-label="Workbench Mode">
         <button id="tab-btn-backtest" type="button" role="tab" aria-selected="true" aria-controls="panel-backtest" class="tv-mode-tab active" data-tab="backtest">
-          1. Backtest<span class="tv-hide-phone"> &amp; Cost Lab</span>
+          1. Backtest
         </button>
         <button id="tab-btn-xray" type="button" role="tab" aria-selected="false" aria-controls="panel-xray" class="tv-mode-tab" data-tab="xray">
-          2. <span class="tv-hide-phone">Alpha Pipeline </span>X-Ray
+          2. <span class="tv-hide-phone">Factor </span>X-Ray
         </button>
         <button id="tab-btn-crashtest" type="button" role="tab" aria-selected="false" aria-controls="panel-crashtest" class="tv-mode-tab" data-tab="crashtest">
-          3. <span class="tv-hide-phone">Overfitting </span>Crash-Test
+          3. Crash-Test
         </button>
       </nav>
 
@@ -95,16 +93,16 @@
         </button>
 
         <button id="btn-holdout-vault" type="button" class="tv-tool-btn tv-vault-sealed num" title="Toggle 25% Out-of-Sample Holdout Vault (peeks are logged in Trial Ledger)">
-          Vault: SEALED
+          OOS: Locked
         </button>
 
         <div id="trial-ledger-pill" class="tv-engine-pill num" title="Multiple-Testing Defense: Distinct Trials, Eigenvalue Independent N_eff &amp; Live Deflated Sharpe Ratio">
-          <span id="trial-ledger-text">Trials 0 | N_eff 1.0 | DSR --</span>
+          <span id="trial-ledger-text">Trials 0 | DSR --</span>
         </div>
 
         <div id="engine-status-pill" class="tv-engine-pill tv-hide-compact num" title="Polars Rust Engine Resource Guard">
           <span class="tv-dot"></span>
-          <span id="engine-status-text">polars-anta ...</span>
+          <span id="engine-status-text" class="sr-only">polars-anta ...</span>
         </div>
 
         <button id="btn-density-toggle" type="button" class="tv-tool-btn num" aria-label="Toggle font size scale" title="Switch font size: 12px (TV Compact) / 13.5px (Comfort)">
@@ -129,7 +127,7 @@
       <section id="panel-backtest" class="tv-bt-workspace" role="tabpanel" aria-labelledby="tab-btn-backtest">
         <aside class="tv-bt-rail" aria-label="Execution Friction and Portfolio Controls">
           <div class="tv-rail-group">
-            <label for="bt-preset-select" class="tv-rail-lbl">Market Friction Preset</label>
+            <label for="bt-preset-select" class="tv-rail-lbl">Market Preset</label>
             <select id="bt-preset-select" class="tv-select tv-rail-select">
               <option value="standard" selected>Global Standard (5+5 bps)</option>
               <option value="vn_cash_limit">VN Cash Equity (CS + Limit-Lock)</option>
@@ -161,7 +159,7 @@
           </div>
 
           <div class="tv-rail-group">
-            <label for="bt-slip-mode" class="tv-rail-lbl">Endogenous Slippage Model</label>
+            <label for="bt-slip-mode" class="tv-rail-lbl">Slippage Model</label>
             <select id="bt-slip-mode" class="tv-select tv-rail-select">
               <option value="fixed" selected>Fixed Basis Points</option>
               <option value="corwin_schultz">Corwin-Schultz OHLC Half-Spread</option>
@@ -171,7 +169,7 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="bt-fee-slider">Commission (1-Way)</label>
+              <label for="bt-fee-slider">Commission</label>
               <output id="bt-fee-val" class="num">5.0 bps</output>
             </div>
             <input id="bt-fee-slider" type="range" min="0" max="50" step="0.5" value="5" class="tv-range" />
@@ -179,7 +177,7 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="bt-slip-slider">Slippage / Extra Impact</label>
+              <label for="bt-slip-slider">Slippage</label>
               <output id="bt-slip-val" class="num">5.0 bps</output>
             </div>
             <input id="bt-slip-slider" type="range" min="0" max="80" step="0.5" value="5" class="tv-range" />
@@ -187,7 +185,7 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="bt-vol-slider">Target Volatility</label>
+              <label for="bt-vol-slider">Vol Target</label>
               <output id="bt-vol-val" class="num">OFF</output>
             </div>
             <input id="bt-vol-slider" type="range" min="0" max="45" step="1" value="0" class="tv-range" />
@@ -195,7 +193,7 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="bt-buf-slider">No-Trade Hysteresis Buffer</label>
+              <label for="bt-buf-slider" title="No-Trade Hysteresis Buffer">No-Trade Buffer</label>
               <output id="bt-buf-val" class="num">0.000</output>
             </div>
             <input id="bt-buf-slider" type="range" min="0" max="0.20" step="0.005" value="0" class="tv-range" />
@@ -203,20 +201,20 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="bt-lag-slider">Execution Signal Lag</label>
+              <label for="bt-lag-slider">Signal Lag</label>
               <output id="bt-lag-val" class="num">1 bar</output>
             </div>
             <input id="bt-lag-slider" type="range" min="0" max="3" step="1" value="1" class="tv-range" />
           </div>
 
           <div class="tv-rail-checks">
-            <label class="tv-check-lbl">
+            <label class="tv-check-lbl" title="Skip fills on Limit-Lock or zero-volume bars">
               <input id="bt-limit-lock" type="checkbox" />
-              <span>Skip Fill on Limit-Lock / 0-Vol</span>
+              <span>Skip Limit-Lock / 0-Vol</span>
             </label>
-            <label class="tv-check-lbl">
+            <label class="tv-check-lbl" title="Flatten positions before EOD session close">
               <input id="bt-intraday-flat" type="checkbox" />
-              <span>Intraday Session EOD Flatten</span>
+              <span>EOD Flatten</span>
             </label>
           </div>
 
@@ -241,15 +239,15 @@
                 <span id="legend-sig-val" class="tv-legend-sig num">--</span>
                 <span id="cache-badge" class="tv-micro-tag num">INIT</span>
                 <button id="forensics-pill" type="button" class="tv-micro-tag tv-forensics-pill num" title="Open Free-Data Forensics &amp; Implicit Spread Audit">
-                  Health -- | Min Slip -- bps
+                  Health --
                 </button>
               </div>
             </div>
 
             <div class="tv-chart-mode-bar">
               <div class="tv-seg-group">
-                <button id="btn-view-equity" type="button" class="tv-seg-btn active">Equity, DD &amp; Cost</button>
-                <button id="btn-view-candles" type="button" class="tv-seg-btn">Candles &amp; Fills</button>
+                <button id="btn-view-equity" type="button" class="tv-seg-btn active">Equity &amp; Cost</button>
+                <button id="btn-view-candles" type="button" class="tv-seg-btn">Candles</button>
               </div>
             </div>
           </div>
@@ -267,7 +265,7 @@
       <section id="panel-xray" class="tv-bt-workspace hidden" role="tabpanel" aria-labelledby="tab-btn-xray">
         <aside class="tv-bt-rail" aria-label="Alpha Pipeline X-Ray Conditioning Controls">
           <div class="tv-rail-group">
-            <label for="xr-winsor-method" class="tv-rail-lbl">Stage 2: Outlier Clipping</label>
+            <label for="xr-winsor-method" class="tv-rail-lbl">Outlier Clipping</label>
             <select id="xr-winsor-method" class="tv-select tv-rail-select">
               <option value="quantile" selected>Quantile Clip (cs_winsorize)</option>
               <option value="mad">Median Abs Dev (MAD)</option>
@@ -277,14 +275,14 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="xr-winsor-slider">Tail Clip / Threshold</label>
+              <label for="xr-winsor-slider">Tail Threshold</label>
               <output id="xr-winsor-val" class="num">2.0% / 98.0%</output>
             </div>
             <input id="xr-winsor-slider" type="range" min="0.5" max="10" step="0.5" value="2" class="tv-range" />
           </div>
 
           <div class="tv-rail-group">
-            <label for="xr-neutral-mode" class="tv-rail-lbl">Stage 3: Neutralization</label>
+            <label for="xr-neutral-mode" class="tv-rail-lbl">Neutralization</label>
             <select id="xr-neutral-mode" class="tv-select tv-rail-select">
               <option value="auto" selected>Auto (Sector FWL / CS Z-Score)</option>
               <option value="demean">Cross-Sectional Z-Score Only</option>
@@ -313,7 +311,7 @@
           </div>
 
           <div class="tv-rail-checks">
-            <span class="tv-rail-lbl">Stage 4: 5-Factor Orthogonalize</span>
+            <span class="tv-rail-lbl">5-Factor Orthogonalize</span>
             <label class="tv-check-lbl">
               <input type="checkbox" class="xr-factor-chk" value="mom_20" checked />
               <span>Momentum (20b)</span>
@@ -337,7 +335,7 @@
           </div>
 
           <button id="btn-xr-promote" type="button" class="tv-btn-primary tv-rail-action" title="Copy active conditioned stage expression into Pine / Formula Editor">
-            <span>Promote Stage to Editor</span>
+            <span>Promote to Editor</span>
           </button>
 
           <div id="xr-rail-latency" class="tv-rail-footer num">-- ms</div>
@@ -348,14 +346,14 @@
 
           <div class="tv-xr-toolbar">
             <div class="tv-xr-formula-bar">
-              <span class="tv-legend-ind-tag">Stage Expr</span>
+              <span class="tv-legend-ind-tag">Expr</span>
               <code id="xr-stage-formula" class="tv-xr-code mono">cs_rank(rsi(close, 14))</code>
             </div>
             <div class="tv-xr-toolbar-right">
-              <span id="xr-verdict-banner" class="tv-xr-verdict num">Spanning Check --</span>
+              <span id="xr-verdict-banner" class="tv-xr-verdict num">Spanning --</span>
               <div class="tv-seg-group">
-                <button id="btn-xr-bl-sector" type="button" class="tv-seg-btn active">Sector Tilt</button>
-                <button id="btn-xr-bl-cumic" type="button" class="tv-seg-btn">Cumul IC</button>
+                <button id="btn-xr-bl-sector" type="button" class="tv-seg-btn active">Sector</button>
+                <button id="btn-xr-bl-cumic" type="button" class="tv-seg-btn">Cum IC</button>
               </div>
             </div>
           </div>
@@ -370,7 +368,7 @@
       <section id="panel-crashtest" class="tv-bt-workspace hidden" role="tabpanel" aria-labelledby="tab-btn-crashtest">
         <aside class="tv-bt-rail" aria-label="Overfitting Crash-Test and Small-Sample Stress Controls">
           <div class="tv-rail-group">
-            <label for="ct-sweep-mode" class="tv-rail-lbl">2D Perturbation Topology</label>
+            <label for="ct-sweep-mode" class="tv-rail-lbl">Perturbation Grid</label>
             <select id="ct-sweep-mode" class="tv-select tv-rail-select">
               <option value="auto_2d" selected>Auto AST Lookback 2D Grid</option>
               <option value="execution_2d">EMA Smooth x No-Trade Buffer</option>
@@ -418,7 +416,7 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="ct-fee-slider">Commission (1-Way)</label>
+              <label for="ct-fee-slider">Commission</label>
               <output id="ct-fee-val" class="num">5.0 bps</output>
             </div>
             <input id="ct-fee-slider" type="range" min="0" max="50" step="0.5" value="5" class="tv-range" />
@@ -426,14 +424,14 @@
 
           <div class="tv-slider-block">
             <div class="tv-slider-hdr">
-              <label for="ct-delist-slider" title="Annualized survivorship/delisting return drag applied to gross long exposure on free datasets">Survivorship Delist Drag</label>
+              <label for="ct-delist-slider" title="Annualized survivorship/delisting return drag applied to gross long exposure on free datasets">Delist Drag</label>
               <output id="ct-delist-val" class="num">OFF (0)</output>
             </div>
             <input id="ct-delist-slider" type="range" min="0" max="400" step="25" value="0" class="tv-range" />
           </div>
 
           <div class="tv-rail-group">
-            <label for="ct-boot-select" class="tv-rail-lbl">Stationary &amp; Null Worlds</label>
+            <label for="ct-boot-select" class="tv-rail-lbl">Null Worlds</label>
             <select id="ct-boot-select" class="tv-select tv-rail-select num">
               <option value="100">100 Synthetic Worlds</option>
               <option value="200" selected>200 Synthetic Worlds</option>
@@ -453,14 +451,14 @@
 
           <div class="tv-xr-toolbar">
             <div class="tv-xr-formula-bar">
-              <span class="tv-legend-ind-tag">Tested Expr</span>
+              <span class="tv-legend-ind-tag">Expr</span>
               <code id="ct-formula-code" class="tv-xr-code mono">cs_rank(rsi(close, 14))</code>
             </div>
             <div class="tv-xr-toolbar-right">
-              <span id="ct-verdict-banner" class="tv-xr-verdict num">Falsification Verdict --</span>
+              <span id="ct-verdict-banner" class="tv-xr-verdict num">Verdict --</span>
               <div class="tv-seg-group">
-                <button id="btn-ct-bl-boot" type="button" class="tv-seg-btn active">Bootstrap &amp; Null</button>
-                <button id="btn-ct-bl-cusum" type="button" class="tv-seg-btn">CUSUM Break</button>
+                <button id="btn-ct-bl-boot" type="button" class="tv-seg-btn active">Bootstrap</button>
+                <button id="btn-ct-bl-cusum" type="button" class="tv-seg-btn">CUSUM</button>
               </div>
             </div>
           </div>
@@ -480,48 +478,48 @@
       <div class="tv-drawer-bar">
         <div class="tv-drawer-tabs" role="tablist" aria-label="Bottom Panel Views">
           <button type="button" role="tab" aria-selected="true" class="tv-subtab active" data-subtab="editor">
-            Pine / Formula Editor
+            Editor
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-summary">
-            Performance &amp; Tail Risk
+            Performance
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-trades">
-            <span>List of Trades (MAE/MFE)</span>
+            <span>Trades</span>
             <span id="trades-count-badge" class="tv-inline-badge num">0</span>
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="xray-matrix">
-            X-Ray &amp; Spanning Matrix
+            X-Ray Matrix
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="ct-candidates">
-            <span>Crash-Test (RW &amp; EB)</span>
+            <span>Crash-Test</span>
             <span id="ct-surv-badge" class="tv-inline-badge num">--</span>
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="forensics">
-            <span>Forensics &amp; Spread Audit</span>
+            <span>Forensics</span>
             <span id="forensics-badge" class="tv-inline-badge num">--</span>
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="metrics">
-            Signal &amp; Universe Summary
+            Universe
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="table">
-            Data Window (Signal &amp; OHLCV)
+            Data
           </button>
         </div>
 
         <div class="tv-drawer-actions">
           <div class="tv-presets" aria-label="Quick Formula Presets">
-            <button type="button" class="tv-preset-chip mono" data-formula="cs_rank(rsi(close, 14))">cs_rank(rsi(14))</button>
-            <button type="button" class="tv-preset-chip mono" data-formula="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)">neutralize(zscore, sector)</button>
-            <button type="button" class="tv-preset-chip mono" data-formula="ema(close, 12) - ema(close, 26)">ema(12)-ema(26)</button>
-            <button type="button" class="tv-preset-chip mono" data-formula="alpha_101(open, high, low, close)">alpha_101</button>
-            <button id="btn-taker-preset" type="button" class="tv-preset-chip tv-preset-flow mono hidden" data-formula="ema(taker_buy_ratio - 0.5, 12)">ema(taker_buy_ratio-0.5, 12)</button>
+            <button type="button" class="tv-preset-chip" title="cs_rank(rsi(close, 14))" data-formula="cs_rank(rsi(close, 14))">RSI Rank</button>
+            <button type="button" class="tv-preset-chip" title="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)" data-formula="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)">Sector Neutral</button>
+            <button type="button" class="tv-preset-chip" title="ema(close, 12) - ema(close, 26)" data-formula="ema(close, 12) - ema(close, 26)">EMA Cross</button>
+            <button type="button" class="tv-preset-chip" title="alpha_101(open, high, low, close)" data-formula="alpha_101(open, high, low, close)">Alpha #101</button>
+            <button id="btn-taker-preset" type="button" class="tv-preset-chip tv-preset-flow hidden" title="ema(taker_buy_ratio - 0.5, 12)" data-formula="ema(taker_buy_ratio - 0.5, 12)">Taker Flow</button>
           </div>
 
           <button id="btn-evaluate-formula" type="button" class="tv-btn-primary" title="Compile and evaluate causal formula (Ctrl+Enter)">
             <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
               <polygon points="6 4 20 12 6 20 6 4" />
             </svg>
-            <span>Compile &amp; Apply</span>
+            <span>Compile</span>
           </button>
 
           <button id="btn-toggle-drawer" type="button" class="tv-icon-btn" aria-label="Collapse or expand bottom panel" title="Minimize / Restore Panel">

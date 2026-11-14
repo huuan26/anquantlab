@@ -3,6 +3,7 @@
  */
 
 import { runCrashTest } from "./api.js";
+import { syncVaultAndLedgerUi } from "./forensics_hub.js";
 import { TVCrashTestChart } from "./tv_crashtest_chart.js";
 
 function fmtSigned(v, digits = 2) {
@@ -131,33 +132,21 @@ export class CrashTestLabController {
   }
 
   _renderResponse(res) {
-    // Sync Topbar Holdout Vault & Cumulative Session Trial Ledger Pill
-    const vaultBtn = document.getElementById("btn-holdout-vault");
     const tl = res.trial_ledger;
-    if (res.holdout_locked) {
-      vaultBtn.textContent = "Vault: SEALED";
-      vaultBtn.title = `Holdout Vault Sealed (${res.is_bars} IS bars)`;
-      vaultBtn.className = "tv-tool-btn tv-vault-sealed num";
-    } else {
-      vaultBtn.textContent = `Vault: OPEN (${tl.holdout_peeks})`;
-      vaultBtn.title = `OOS Holdout Unsealed (Peeks: ${tl.holdout_peeks})`;
-      vaultBtn.className = "tv-tool-btn tv-vault-open num";
-    }
-
     const sessBar = res.haircut_bars && res.haircut_bars[2];
     const dsrPct =
       sessBar && sessBar.probability !== null && sessBar.probability !== undefined
         ? `${(sessBar.probability * 100).toFixed(1)}%`
         : "--";
-    document.getElementById("trial-ledger-text").textContent =
-      `Trials ${tl.unique_trials} | N_eff ${tl.effective_n_trials.toFixed(1)} | DSR ${dsrPct}`;
+    syncVaultAndLedgerUi(res, dsrPct);
 
     document.getElementById("ct-rail-latency").textContent =
-      `${res.elapsed_ms.toFixed(1)} ms | ${res.candidates.length} Grid Trials | N_eff ${tl.effective_n_trials.toFixed(1)}`;
+      `${res.elapsed_ms.toFixed(1)}ms | ${res.candidates.length} trials | N_eff ${tl.effective_n_trials.toFixed(1)}`;
     document.getElementById("ct-formula-code").textContent = res.normalized_formula;
 
     const verdictEl = document.getElementById("ct-verdict-banner");
-    verdictEl.textContent = `${res.verdict}: ${res.verdict_summary}`;
+    verdictEl.textContent = res.verdict.replace(/_/g, " ");
+    verdictEl.title = `${res.verdict}: ${res.verdict_summary}`;
     verdictEl.className = `tv-xr-verdict num ${
       res.verdict === "SURVIVES_FALSIFICATION"
         ? "val-pos"
@@ -183,32 +172,32 @@ export class CrashTestLabController {
 
     const cards = [
       [
-        "1. 2D Surface & Plateau",
+        "1. 2D Surface",
         `Base ${fmtSigned(hm.baseline_sharpe, 2)}`,
         hm.baseline_sharpe > 0.5 ? "val-pos" : hm.baseline_sharpe < 0 ? "val-neg" : "",
         `Peak ${fmtSigned(hm.best_sharpe, 2)} | Med ${fmtSigned(hm.median_sharpe, 2)}`,
         `Plateau ${hm.neighbor_plateau_ratio.toFixed(2)} | Pos ${(hm.positive_grid_share * 100).toFixed(0)}%`,
       ],
       [
-        "2. CSCV Overfit (PBO)",
+        "2. CSCV (PBO)",
         `PBO ${(pbo.pbo * 100).toFixed(1)}%`,
         pbo.pbo < 0.35 ? "val-pos" : pbo.pbo >= 0.55 ? "val-neg" : "val-warn",
-        `OOS Loss Prob ${(pbo.prob_oos_loss * 100).toFixed(1)}%`,
-        `${pbo.n_combinations.toLocaleString()} Splits | Slope ${pbo.degradation_slope.toFixed(2)}`,
+        `OOS Loss ${(pbo.prob_oos_loss * 100).toFixed(1)}%`,
+        `${pbo.n_combinations.toLocaleString()} splits | Slope ${pbo.degradation_slope.toFixed(2)}`,
       ],
       [
-        "3. Bootstrap & Null World",
+        "3. Bootstrap",
         `Null p ${bs.null_p_value.toFixed(3)}`,
         bs.null_p_value <= 0.05 ? "val-pos" : bs.null_p_value > 0.25 ? "val-neg" : "val-warn",
-        `Boot Med SR ${fmtSigned(bs.sharpe_median, 2)} | Null95 ${bs.null_sharpe_95.toFixed(2)}`,
-        `P(SR>0) ${(bs.prob_positive_world * 100).toFixed(0)}% | P95 DD ${(bs.max_dd_p95_worst * 100).toFixed(1)}%`,
+        `Med ${fmtSigned(bs.sharpe_median, 2)} | Null95 ${bs.null_sharpe_95.toFixed(2)}`,
+        `P(SR>0) ${(bs.prob_positive_world * 100).toFixed(0)}% | DD95 ${(bs.max_dd_p95_worst * 100).toFixed(1)}%`,
       ],
       [
-        "4. Romano-Wolf & CUSUM",
+        "4. Romano-Wolf",
         `RW ${rwGate.survivors}/${rwGate.total}`,
         rwGate.survivors > 0 && !cs.has_break ? "val-pos" : cs.has_break ? "val-warn" : "",
-        `All-7 Gate Survivors: ${finalGate.survivors}/${finalGate.total}`,
-        `CUSUM Q=${cs.statistic.toFixed(2)} (p=${cs.p_value.toFixed(2)}) ${cs.has_break ? "BREAK" : "STABLE"}`,
+        `All-7 Pass ${finalGate.survivors}/${finalGate.total}`,
+        `CUSUM Q ${cs.statistic.toFixed(2)} (${cs.has_break ? "BREAK" : "STABLE"})`,
       ],
     ];
 

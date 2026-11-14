@@ -4,37 +4,14 @@
  * (3) 200 Stationary Bootstrap Fan Chart / OLS-CUSUM Bridge, (4) 7-Stage Romano-Wolf Funnel.
  */
 
-import { drawQuadrantHeader, fitCanvasText, renderFourPanels } from "./canvas_utils.js";
-
-function readPalette() {
-  const cs = getComputedStyle(document.documentElement);
-  const g = (k, fb) => cs.getPropertyValue(k).trim() || fb;
-  return {
-    bg: g("--tv-bg-canvas", "#131722"),
-    pane: g("--tv-bg-pane", "#1E222D"),
-    elev: g("--tv-bg-elevated", "#2A2E39"),
-    border: g("--tv-border", "#2A2E39"),
-    borderStrong: g("--tv-border-strong", "#434651"),
-    text: g("--tv-text-primary", "#D1D4DC"),
-    sub: g("--tv-text-secondary", "#9598A1"),
-    muted: g("--tv-text-muted", "#868993"),
-    blue: g("--tv-blue", "#2962FF"),
-    up: g("--tv-up", "#089981"),
-    down: g("--tv-down", "#F23645"),
-    warn: g("--tv-warn", "#F7931A"),
-  };
-}
-
-function snap(v) {
-  return Math.floor(v) + 0.5;
-}
+import { drawQuadrantHeader, fitCanvasText, readChartPalette, renderFourPanels, snapPx as snap } from "./canvas_utils.js";
 
 function heatCellFill(sr, maxAbs) {
   const norm = Math.max(-1, Math.min(1, sr / Math.max(0.4, maxAbs)));
-  const alpha = (0.12 + 0.62 * Math.abs(norm)).toFixed(3);
-  if (norm >= 0.02) return `rgba(8, 153, 129, ${alpha})`;
-  if (norm <= -0.02) return `rgba(242, 54, 69, ${alpha})`;
-  return "rgba(134, 137, 147, 0.14)";
+  const alpha = (0.05 + 0.28 * Math.abs(norm)).toFixed(3);
+  if (norm >= 0.02) return `rgba(46, 158, 132, ${alpha})`;
+  if (norm <= -0.02) return `rgba(200, 90, 98, ${alpha})`;
+  return "rgba(134, 137, 147, 0.07)";
 }
 
 export class TVCrashTestChart {
@@ -87,7 +64,7 @@ export class TVCrashTestChart {
     const ctx = this.ctx;
     ctx.save();
     ctx.scale(dpr, dpr);
-    const pal = readPalette();
+    const pal = readChartPalette();
 
     ctx.fillStyle = pal.bg;
     ctx.fillRect(0, 0, w, h);
@@ -124,8 +101,8 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      `2D Net Sharpe Surface (${hm.y_name} x ${hm.x_name})`,
-      `Plateau ${hm.neighbor_plateau_ratio.toFixed(2)} | Pos ${(hm.positive_grid_share * 100).toFixed(0)}%`,
+      `2D Sharpe Surface (${hm.y_name} x ${hm.x_name})`,
+      `Plateau ${hm.neighbor_plateau_ratio.toFixed(2)}`,
       pal
     );
 
@@ -162,8 +139,8 @@ export class TVCrashTestChart {
         ctx.fillRect(cx + 1, cy + 1, Math.max(2, cellW - 2), Math.max(2, cellH - 2));
 
         if (r === hm.baseline_row && c === hm.baseline_col) {
-          ctx.strokeStyle = pal.blue;
-          ctx.lineWidth = 1.8;
+          ctx.strokeStyle = pal.sub;
+          ctx.lineWidth = 1.1;
           ctx.strokeRect(
             snap(cx + 1.5),
             snap(cy + 1.5),
@@ -172,7 +149,7 @@ export class TVCrashTestChart {
           );
         }
 
-        ctx.font = nCols >= 5 ? "600 10px 'JetBrains Mono', monospace" : "600 11px 'JetBrains Mono', monospace";
+        ctx.font = nCols >= 5 ? "500 10px 'JetBrains Mono', monospace" : "500 11px 'JetBrains Mono', monospace";
         ctx.fillStyle = pal.text;
         ctx.textAlign = "center";
         ctx.fillText(`${val >= 0 ? "+" : ""}${val.toFixed(2)}`, cx + cellW * 0.5, cy + cellH * 0.5 + 3.5);
@@ -196,7 +173,7 @@ export class TVCrashTestChart {
       x,
       y,
       splitW,
-      "Multiple-Testing Sharpe Haircut",
+      "Sharpe Haircut",
       "",
       pal
     );
@@ -205,7 +182,7 @@ export class TVCrashTestChart {
       x + splitW,
       y,
       w - splitW,
-      "CSCV PBO Logits",
+      "PBO Logits",
       `PBO ${(pbo.pbo * 100).toFixed(1)}%`,
       pal
     );
@@ -249,8 +226,8 @@ export class TVCrashTestChart {
         ctx.fillText(fitCanvasText(ctx, rawStage, labelW - 6), hL, ry + 3.5);
 
         const targetX = bL + ((b.sharpe_equiv - minV) / span) * bW;
-        const bh = Math.max(7, Math.min(16, rowH - 8));
-        ctx.fillStyle = idx === 0 ? pal.blue : b.sharpe_equiv >= 0 ? pal.up : pal.down;
+        const bh = Math.max(6, Math.min(12, rowH - 8));
+        ctx.fillStyle = idx === 0 ? pal.blueBar : b.sharpe_equiv >= 0 ? pal.upSoft : pal.downSoft;
         if (targetX >= zeroX) {
           ctx.fillRect(zeroX, ry - bh / 2, Math.max(1.5, targetX - zeroX), bh);
         } else {
@@ -294,7 +271,7 @@ export class TVCrashTestChart {
         const bx = pL + i * binW + 0.5;
         const by = botY - bh;
         const mid = 0.5 * (edges[i] + edges[i + 1]);
-        ctx.fillStyle = mid < 0 ? "rgba(242, 54, 69, 0.72)" : "rgba(8, 153, 129, 0.72)";
+        ctx.fillStyle = mid < 0 ? pal.downSoft : pal.upSoft;
         ctx.fillRect(bx, by, Math.max(1.5, binW - 1.5), bh);
       }
 
@@ -302,7 +279,7 @@ export class TVCrashTestChart {
         const zX = pL + ((0 - minE) / spanE) * pW;
         ctx.save();
         ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = pal.warn;
+        ctx.strokeStyle = pal.warnSoft;
         ctx.beginPath();
         ctx.moveTo(snap(zX), topY);
         ctx.lineTo(snap(zX), botY);
@@ -315,21 +292,19 @@ export class TVCrashTestChart {
       ctx.moveTo(pL, snap(botY));
       ctx.lineTo(pR, snap(botY));
       ctx.stroke();
+
+      ctx.font = "10px 'JetBrains Mono', monospace";
+      ctx.fillStyle = pal.muted;
+      ctx.textAlign = "left";
+      ctx.fillText(minE.toFixed(1), pL, y + h - 6);
+      ctx.textAlign = "right";
+      ctx.fillText(maxE.toFixed(1), pR, y + h - 6);
     } else {
       ctx.font = "10.5px Inter, sans-serif";
       ctx.fillStyle = pal.muted;
       ctx.textAlign = "center";
       ctx.fillText("Flat / zero-variance grid", pL + pW / 2, topY + plotH / 2);
     }
-
-    ctx.font = "10px 'JetBrains Mono', monospace";
-    ctx.fillStyle = pbo.pbo >= 0.5 ? pal.down : pal.sub;
-    ctx.textAlign = "center";
-    ctx.fillText(
-      `Loss Prob ${(pbo.prob_oos_loss * 100).toFixed(1)}% | Slope ${pbo.degradation_slope.toFixed(2)}`,
-      pL + pW / 2,
-      y + h - 6
-    );
   }
 
   _drawBootstrapFan(ctx, x, y, w, h, pal) {
@@ -339,8 +314,8 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      `200 Stationary Bootstrap Worlds (Block ${bs.mean_block_bars}b)`,
-      `Null 95% SR ${bs.null_sharpe_95.toFixed(2)} | Null p=${bs.null_p_value.toFixed(3)}`,
+      `Bootstrap Fan (${bs.mean_block_bars}b block)`,
+      `Null95 ${bs.null_sharpe_95.toFixed(2)}`,
       pal
     );
 
@@ -371,7 +346,7 @@ export class TVCrashTestChart {
     const mapY = (v) => botY - ((v - minEq) / span) * plotH;
 
     // P10 - P90 Outer Cone
-    ctx.fillStyle = "rgba(41, 98, 255, 0.12)";
+    ctx.fillStyle = pal.fanOuter;
     ctx.beginPath();
     pts.forEach((p, i) => (i === 0 ? ctx.moveTo(mapX(i), mapY(p.p90)) : ctx.lineTo(mapX(i), mapY(p.p90))));
     for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(mapX(i), mapY(pts[i].p10));
@@ -379,7 +354,7 @@ export class TVCrashTestChart {
     ctx.fill();
 
     // P25 - P75 Inner Cone
-    ctx.fillStyle = "rgba(41, 98, 255, 0.22)";
+    ctx.fillStyle = pal.fanInner;
     ctx.beginPath();
     pts.forEach((p, i) => (i === 0 ? ctx.moveTo(mapX(i), mapY(p.p75)) : ctx.lineTo(mapX(i), mapY(p.p75))));
     for (let i = pts.length - 1; i >= 0; i--) ctx.lineTo(mapX(i), mapY(pts[i].p25));
@@ -397,9 +372,9 @@ export class TVCrashTestChart {
 
     // P50 Median Dashed Curve
     ctx.save();
-    ctx.setLineDash([4, 3]);
-    ctx.strokeStyle = pal.blue;
-    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = pal.gross;
+    ctx.lineWidth = 1.0;
     ctx.beginPath();
     pts.forEach((p, i) => (i === 0 ? ctx.moveTo(mapX(i), mapY(p.p50)) : ctx.lineTo(mapX(i), mapY(p.p50))));
     ctx.stroke();
@@ -408,7 +383,7 @@ export class TVCrashTestChart {
     // Realized IS Equity Curve
     const endReal = pts[pts.length - 1].realized;
     ctx.strokeStyle = endReal >= 1.0 ? pal.up : pal.down;
-    ctx.lineWidth = 1.9;
+    ctx.lineWidth = 1.35;
     ctx.beginPath();
     pts.forEach((p, i) =>
       i === 0 ? ctx.moveTo(mapX(i), mapY(p.realized)) : ctx.lineTo(mapX(i), mapY(p.realized))
@@ -419,14 +394,8 @@ export class TVCrashTestChart {
     ctx.fillStyle = pal.muted;
     ctx.textAlign = "left";
     ctx.fillText(
-      `SR P05..P95: [${bs.sharpe_p05.toFixed(2)}, ${bs.sharpe_p95.toFixed(2)}]`,
+      `SR P05..P95 [${bs.sharpe_p05.toFixed(2)}, ${bs.sharpe_p95.toFixed(2)}]`,
       padL,
-      y + h - 6
-    );
-    ctx.textAlign = "right";
-    ctx.fillText(
-      `P(SR>0) ${(bs.prob_positive_world * 100).toFixed(0)}% | P95 DD ${(bs.max_dd_p95_worst * 100).toFixed(1)}%`,
-      padR,
       y + h - 6
     );
   }
@@ -438,8 +407,8 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      "OLS-CUSUM Structural Break Bridge",
-      `Q=${cs.statistic.toFixed(3)} (p=${cs.p_value.toFixed(3)}) ${cs.has_break ? "BREAK" : "STABLE"}`,
+      "OLS-CUSUM Break Bridge",
+      `Q=${cs.statistic.toFixed(2)} (p=${cs.p_value.toFixed(2)})`,
       pal
     );
 
@@ -466,7 +435,8 @@ export class TVCrashTestChart {
     // +/- 1.3581 5% Kolmogorov Critical Lines
     ctx.save();
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = pal.down;
+    ctx.strokeStyle = pal.downSoft;
+    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(padL, snap(mapY(crit)));
     ctx.lineTo(padR, snap(mapY(crit)));
@@ -476,7 +446,7 @@ export class TVCrashTestChart {
     ctx.restore();
 
     ctx.strokeStyle = cs.has_break ? pal.warn : pal.blue;
-    ctx.lineWidth = 1.8;
+    ctx.lineWidth = 1.35;
     ctx.beginPath();
     pts.forEach((p, i) => (i === 0 ? ctx.moveTo(mapX(i), mapY(p.stat)) : ctx.lineTo(mapX(i), mapY(p.stat))));
     ctx.stroke();
@@ -501,8 +471,8 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      "7-Stage Romano-Wolf Falsification Funnel",
-      `Survived ${last.survivors}/${last.total} (${last.survival_pct.toFixed(0)}%)`,
+      "Romano-Wolf Funnel",
+      `Survived ${last.survivors}/${last.total}`,
       pal
     );
 
@@ -527,12 +497,12 @@ export class TVCrashTestChart {
       ctx.fillText(fitCanvasText(ctx, it.gate_label, labelW - 8), padL, ry + 3.5);
 
       const frac = Math.max(0, Math.min(1, it.survival_pct / 100.0));
-      const bh = Math.max(7, rowH - 7);
+      const bh = Math.max(6, Math.min(12, rowH - 7));
       ctx.fillStyle = pal.elev;
       ctx.fillRect(barL, ry - bh / 2, barMaxW, bh);
 
       if (frac > 0) {
-        ctx.fillStyle = idx === items.length - 1 ? pal.up : idx >= 4 ? pal.blue : "rgba(41, 98, 255, 0.72)";
+        ctx.fillStyle = idx === items.length - 1 ? pal.upSoft : pal.blueBar;
         ctx.fillRect(barL, ry - bh / 2, Math.max(2, barMaxW * frac), bh);
       }
 

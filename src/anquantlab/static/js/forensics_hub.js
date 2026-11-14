@@ -16,13 +16,36 @@ function gradeTone(grade) {
   return "var(--tv-down)";
 }
 
+export function syncVaultAndLedgerUi(res, dsrText = null) {
+  const vaultBtn = document.getElementById("btn-holdout-vault");
+  const tl = res.trial_ledger;
+  if (vaultBtn && tl) {
+    if (res.holdout_locked) {
+      vaultBtn.textContent = "OOS: Locked";
+      vaultBtn.title = `Holdout Vault Sealed (${res.is_bars} IS bars)`;
+      vaultBtn.className = "tv-tool-btn tv-vault-sealed num";
+    } else {
+      vaultBtn.textContent = `OOS: Open (${tl.holdout_peeks})`;
+      vaultBtn.title = `OOS Holdout Unsealed (Peeks: ${tl.holdout_peeks})`;
+      vaultBtn.className = "tv-tool-btn tv-vault-open num";
+    }
+  }
+  const ledgerText = document.getElementById("trial-ledger-text");
+  const ledgerPill = document.getElementById("trial-ledger-pill");
+  if (ledgerText && tl && dsrText !== null) {
+    ledgerText.textContent = `Trials ${tl.unique_trials} | DSR ${dsrText}`;
+    if (ledgerPill) {
+      ledgerPill.title = `Trials ${tl.unique_trials} | N_eff ${tl.effective_n_trials.toFixed(1)} | DSR ${dsrText}`;
+    }
+  }
+}
+
 export function renderForensicsPanel(f) {
   if (!f) return;
 
   const pill = document.getElementById("forensics-pill");
   if (pill) {
-    pill.textContent = `Health ${f.health_score} (${f.grade}) | Min Slip ${f.recommended_min_slippage_bps.toFixed(1)} bps`;
-    pill.style.borderColor = gradeTone(f.grade);
+    pill.textContent = `Health ${f.health_score}/${f.grade} | Slip ${f.recommended_min_slippage_bps.toFixed(1)}bp`;
     pill.style.color = gradeTone(f.grade);
   }
 

@@ -2,43 +2,7 @@
  * TradingView-Style Dual-Pane Canvas 2D Renderer (OHLCV Candles + Signal Sub-Pane + Crosshair).
  */
 
-import { attachCanvasPointerEvents } from "./canvas_utils.js";
-
-function readThemePalette() {
-  const theme = document.documentElement.getAttribute("data-theme") || "dark";
-  if (theme === "light") {
-    return {
-      bg: "#FFFFFF",
-      grid: "#F0F3FA",
-      border: "#E0E3EB",
-      axisText: "#5D606B",
-      crosshair: "#787B86",
-      tagBg: "#131722",
-      tagText: "#FFFFFF",
-      up: "#089981",
-      upVol: "rgba(8, 153, 129, 0.22)",
-      down: "#F23645",
-      downVol: "rgba(242, 54, 69, 0.22)",
-      blue: "#2962FF",
-      blueFill: "rgba(41, 98, 255, 0.12)",
-    };
-  }
-  return {
-    bg: "#131722",
-    grid: "#1E222D",
-    border: "#2A2E39",
-    axisText: "#868993",
-    crosshair: "#787B86",
-    tagBg: "#363A45",
-    tagText: "#D1D4DC",
-    up: "#089981",
-    upVol: "rgba(8, 153, 129, 0.20)",
-    down: "#F23645",
-    downVol: "rgba(242, 54, 69, 0.20)",
-    blue: "#2962FF",
-    blueFill: "rgba(41, 98, 255, 0.14)",
-  };
-}
+import { attachCanvasPointerEvents, readChartPalette } from "./canvas_utils.js";
 
 function fmtPrice(val) {
   if (val === null || val === undefined || Number.isNaN(val)) return "--";
@@ -153,7 +117,7 @@ export class TVDualChart {
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    const pal = readThemePalette();
+    const pal = readChartPalette();
     ctx.fillStyle = pal.bg;
     ctx.fillRect(0, 0, width, height);
 
@@ -312,9 +276,9 @@ export class TVDualChart {
       }
     }
 
-    // Signal sub-pane line + subtle area
+    // Signal sub-pane hairline
     ctx.strokeStyle = pal.blue;
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.25;
     ctx.beginPath();
     let started = false;
     for (let i = 0; i < n; i++) {
@@ -343,18 +307,18 @@ export class TVDualChart {
     ctx.lineTo(width, totalPlotH + 0.5);
     ctx.stroke();
 
-    // Last price & last signal tags on right axis
+    // Last price & last signal tags on right axis (muted pill tags)
     const lastB = this.series[n - 1];
     const lpY = Math.max(priceTop + 8, Math.min(sepY - 10, yPrice(lastB.c)));
-    ctx.fillStyle = lastB.c >= lastB.o ? pal.up : pal.down;
-    ctx.fillRect(plotW + 1, lpY - 8, rightW - 2, 16);
+    ctx.fillStyle = lastB.c >= lastB.o ? pal.upSoft : pal.downSoft;
+    ctx.fillRect(plotW + 2, lpY - 7.5, rightW - 4, 15);
     ctx.fillStyle = "#FFFFFF";
     ctx.fillText(fmtPrice(lastB.c), plotW + 6, lpY + 3.5);
 
     if (lastB.s !== null && lastB.s !== undefined) {
       const lsY = Math.max(sigTop + 8, Math.min(totalPlotH - 10, ySig(lastB.s)));
-      ctx.fillStyle = pal.blue;
-      ctx.fillRect(plotW + 1, lsY - 8, rightW - 2, 16);
+      ctx.fillStyle = pal.blueBar;
+      ctx.fillRect(plotW + 2, lsY - 7.5, rightW - 4, 15);
       ctx.fillStyle = "#FFFFFF";
       ctx.fillText(fmtSig(lastB.s), plotW + 6, lsY + 3.5);
     }
