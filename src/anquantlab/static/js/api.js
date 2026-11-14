@@ -87,3 +87,11 @@ export async function runBacktest(payload) {
 export async function fetchTrialLedger(datasetId) {
   return requestJson(`/api/trials/${encodeURIComponent(datasetId)}`);
 }
+
+export async function runXRay(payload) {
+  return requestJson("/api/xray/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}

@@ -249,19 +249,106 @@
         </div>
       </section>
 
-      <!-- Tab 2: Alpha Pipeline X-Ray Docked Placeholder -->
-      <section id="panel-xray" class="tv-placeholder-pane hidden" role="tabpanel" aria-labelledby="tab-btn-xray">
-        <div class="tv-wireframe-box">
-          <svg class="tv-icon-lg" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="4" rx="1" />
-            <rect x="3" y="10" width="18" height="4" rx="1" />
-            <rect x="3" y="16" width="18" height="4" rx="1" />
-          </svg>
-          <h2 class="tv-pane-title">Tab 2: Alpha Pipeline X-Ray (Phase 3)</h2>
-          <p class="tv-pane-desc">
-            Cross-sectional 4-stage inspection (<code class="mono">Raw -&gt; cs_winsorize -&gt; neutralize(sector) -&gt; orthogonalize</code>)
-            with synchronized quantile histograms, sector exposure bars, L1 factor turnover, and Newey-West HAC ICIR.
-          </p>
+      <!-- Tab 2: 4-Stage Causal Alpha Pipeline X-Ray & 5-Factor Spanning Check -->
+      <section id="panel-xray" class="tv-bt-workspace hidden" role="tabpanel" aria-labelledby="tab-btn-xray">
+        <aside class="tv-bt-rail" aria-label="Alpha Pipeline X-Ray Conditioning Controls">
+          <div class="tv-rail-group">
+            <label for="xr-winsor-method" class="tv-rail-lbl">Stage 2: Outlier Clipping</label>
+            <select id="xr-winsor-method" class="tv-select tv-rail-select">
+              <option value="quantile" selected>Quantile Clip (cs_winsorize)</option>
+              <option value="mad">Median Abs Dev (MAD)</option>
+              <option value="zscore">Z-Score Cap</option>
+            </select>
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="xr-winsor-slider">Tail Clip / Threshold</label>
+              <output id="xr-winsor-val" class="num">2.0% / 98.0%</output>
+            </div>
+            <input id="xr-winsor-slider" type="range" min="0.5" max="10" step="0.5" value="2" class="tv-range" />
+          </div>
+
+          <div class="tv-rail-group">
+            <label for="xr-neutral-mode" class="tv-rail-lbl">Stage 3: Neutralization</label>
+            <select id="xr-neutral-mode" class="tv-select tv-rail-select">
+              <option value="auto" selected>Auto (Sector FWL / CS Z-Score)</option>
+              <option value="demean">Cross-Sectional Z-Score Only</option>
+              <option value="none">Bypass Stage 3</option>
+            </select>
+          </div>
+
+          <div class="tv-rail-row-2">
+            <div>
+              <label for="xr-ic-horizon" class="tv-rail-lbl">IC Horizon</label>
+              <select id="xr-ic-horizon" class="tv-select tv-rail-select num">
+                <option value="1" selected>1 bar</option>
+                <option value="2">2 bars</option>
+                <option value="5">5 bars</option>
+                <option value="10">10 bars</option>
+                <option value="20">20 bars</option>
+              </select>
+            </div>
+            <div>
+              <label for="xr-ic-method" class="tv-rail-lbl">IC Metric</label>
+              <select id="xr-ic-method" class="tv-select tv-rail-select">
+                <option value="spearman" selected>Rank IC</option>
+                <option value="pearson">Linear IC</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tv-rail-checks">
+            <span class="tv-rail-lbl">Stage 4: 5-Factor Orthogonalize</span>
+            <label class="tv-check-lbl">
+              <input type="checkbox" class="xr-factor-chk" value="mom_20" checked />
+              <span>Momentum (20b)</span>
+            </label>
+            <label class="tv-check-lbl">
+              <input type="checkbox" class="xr-factor-chk" value="rev_5" checked />
+              <span>Short Reversal (5b)</span>
+            </label>
+            <label class="tv-check-lbl">
+              <input type="checkbox" class="xr-factor-chk" value="yz_vol_20" checked />
+              <span>Yang-Zhang Vol (20b)</span>
+            </label>
+            <label class="tv-check-lbl">
+              <input type="checkbox" class="xr-factor-chk" value="amihud_20" checked />
+              <span>Amihud Illiquidity (20b)</span>
+            </label>
+            <label class="tv-check-lbl">
+              <input type="checkbox" class="xr-factor-chk" value="mkt_beta_60" checked />
+              <span>Market Beta / Trend (60b)</span>
+            </label>
+          </div>
+
+          <button id="btn-xr-promote" type="button" class="tv-btn-primary tv-rail-action" title="Copy active conditioned stage expression into Pine / Formula Editor">
+            <span>Promote Stage to Editor</span>
+          </button>
+
+          <div id="xr-rail-latency" class="tv-rail-footer num">-- ms</div>
+        </aside>
+
+        <div class="tv-xr-main">
+          <div id="xr-stage-strip" class="tv-xr-stage-strip" role="tablist" aria-label="4-Stage Alpha Conditioning Funnel"></div>
+
+          <div class="tv-xr-toolbar">
+            <div class="tv-xr-formula-bar">
+              <span class="tv-legend-ind-tag">Stage Expr</span>
+              <code id="xr-stage-formula" class="tv-xr-code mono">cs_rank(rsi(close, 14))</code>
+            </div>
+            <div class="tv-xr-toolbar-right">
+              <span id="xr-verdict-banner" class="tv-xr-verdict num">Spanning Check --</span>
+              <div class="tv-seg-group">
+                <button id="btn-xr-bl-sector" type="button" class="tv-seg-btn active">Sector Tilt</button>
+                <button id="btn-xr-bl-cumic" type="button" class="tv-seg-btn">Cumul IC</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-canvas-wrap">
+            <canvas id="tv-xray-canvas" aria-label="4-Quadrant Alpha Pipeline X-Ray and 5-Factor Spanning Canvas"></canvas>
+          </div>
         </div>
       </section>
 
@@ -297,6 +384,9 @@
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-trades">
             <span>List of Trades (MAE/MFE)</span>
             <span id="trades-count-badge" class="tv-inline-badge num">0</span>
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="xray-matrix">
+            X-Ray &amp; Spanning Matrix
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="forensics">
             <span>Forensics &amp; Spread Audit</span>
@@ -388,6 +478,45 @@
               </tr>
             </thead>
             <tbody id="bt-trades-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sub-View 1.4: X-Ray 4-Stage Comparison & 5-Factor Spanning Regression Matrix -->
+      <div id="subpanel-xray-matrix" class="tv-subpanel tv-xr-matrix-split hidden">
+        <div class="tv-table-scroll">
+          <table class="tv-table num">
+            <thead>
+              <tr>
+                <th>Pipeline Stage</th>
+                <th>IC Mean</th>
+                <th>ICIR</th>
+                <th>NW t-stat</th>
+                <th>Q5-Q1 Spread</th>
+                <th>Monotonic</th>
+                <th>Turnover</th>
+                <th>Max Sector Tilt</th>
+                <th>Skew / ExKurt</th>
+              </tr>
+            </thead>
+            <tbody id="xr-stages-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="tv-table-scroll">
+          <table class="tv-table num">
+            <thead>
+              <tr>
+                <th>Benchmark Factor</th>
+                <th>Ortho</th>
+                <th>OLS Beta</th>
+                <th>DK NW t</th>
+                <th>Marg Corr</th>
+                <th>Pratt R2</th>
+                <th>Post-Ortho Corr</th>
+              </tr>
+            </thead>
+            <tbody id="xr-spanning-tbody"></tbody>
           </table>
         </div>
       </div>

@@ -14,7 +14,7 @@ from .catalog import CS_FUNCTIONS, build_catalog, get_expression_functions
 from .schemas import ExecutionStageInfo
 
 MAX_AST_NODES = 160
-MAX_CALL_DEPTH = 12
+MAX_CALL_DEPTH = 20
 
 _NUMERIC_DTYPES = (
     pl.Float64,
@@ -160,7 +160,7 @@ class _ASTFormulaCompiler:
                 return -node.operand.value if isinstance(node.op, ast.USub) else +node.operand.value
         if isinstance(node, (ast.List, ast.Tuple)):
             return [self._visit_arg_value(elt, depth + 1) for elt in node.elts]
-        return self._visit(node, depth + 1)
+        return self._visit(node, depth)
 
     def _materialize_for_cs(self, val: Any, fn_name: str) -> Any:
         if isinstance(val, list):

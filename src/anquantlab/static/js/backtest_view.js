@@ -69,10 +69,19 @@ function fmtDec(v, digits = 2) {
 }
 
 export class BacktestLabController {
-  constructor({ getDatasetId, getFormula, getSymbol, setSymbolDropdown, candleChart, onError }) {
+  constructor({
+    getDatasetId,
+    getFormula,
+    getSymbol,
+    getHoldoutLocked,
+    setSymbolDropdown,
+    candleChart,
+    onError,
+  }) {
     this.getDatasetId = getDatasetId;
     this.getFormula = getFormula;
     this.getSymbol = getSymbol;
+    this.getHoldoutLocked = getHoldoutLocked || (() => this.holdoutLocked);
     this.setSymbolDropdown = setSymbolDropdown;
     this.candleChart = candleChart;
     this.onError = onError;
@@ -104,7 +113,7 @@ export class BacktestLabController {
       signal_lag: Number(document.getElementById("bt-lag-slider").value),
       limit_lock_skip: document.getElementById("bt-limit-lock").checked,
       intraday_flatten: document.getElementById("bt-intraday-flat").checked,
-      holdout_locked: this.holdoutLocked,
+      holdout_locked: this.getHoldoutLocked(),
       chart_bars: 180,
       max_trades: 80,
     };
@@ -166,10 +175,12 @@ export class BacktestLabController {
       }
     );
 
-    document.getElementById("btn-holdout-vault").addEventListener("click", () => {
-      this.holdoutLocked = !this.holdoutLocked;
-      this.scheduleRun(0);
-    });
+    if (!this.getHoldoutLocked._externalManaged) {
+      document.getElementById("btn-holdout-vault").addEventListener("click", () => {
+        this.holdoutLocked = !this.holdoutLocked;
+        this.scheduleRun(0);
+      });
+    }
 
     const btnEq = document.getElementById("btn-view-equity");
     const btnCd = document.getElementById("btn-view-candles");

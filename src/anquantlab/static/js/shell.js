@@ -15,6 +15,7 @@ import {
 import { BacktestLabController } from "./backtest_view.js";
 import { initPublicDataModal, renderForensicsPanel } from "./forensics_hub.js";
 import { TVDualChart } from "./tv_chart.js";
+import { XRayLabController } from "./xray_view.js";
 
 const state = {
   catalog: null,
@@ -23,8 +24,11 @@ const state = {
   activeDatasetId: "builtin_demo_panel",
   activeDatasetName: "Synthetic Panel",
   activeSymbol: null,
+  activeTab: "backtest",
+  holdoutLocked: true,
   chart: null,
   btLab: null,
+  xrayLab: null,
 };
 
 function fmtNum(val, digits = 4) {
@@ -52,6 +56,7 @@ function initThemeAndDensity() {
     localStorage.setItem("anquantlab_theme", next);
     if (state.chart) state.chart.render();
     if (state.btLab) state.btLab.renderCurrentChart();
+    if (state.xrayLab) state.xrayLab.renderCurrentChart();
   });
 
   document.getElementById("btn-density-toggle").addEventListener("click", () => {
@@ -81,9 +86,11 @@ function activateSubTab(target) {
     b.classList.toggle("active", active);
     b.setAttribute("aria-selected", active ? "true" : "false");
   });
-  ["editor", "bt-summary", "bt-trades", "forensics", "metrics", "table"].forEach((id) => {
-    document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
-  });
+  ["editor", "bt-summary", "bt-trades", "xray-matrix", "forensics", "metrics", "table"].forEach(
+    (id) => {
+      document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
+    }
+  );
 }
 
 function initModeAndSubTabs() {
@@ -91,6 +98,7 @@ function initModeAndSubTabs() {
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => {
       const target = btn.dataset.tab;
+      state.activeTab = target;
       modeBtns.forEach((b) => {
         const active = b.dataset.tab === target;
         b.classList.toggle("active", active);
@@ -102,6 +110,8 @@ function initModeAndSubTabs() {
       if (target === "backtest") {
         if (state.chart) state.chart.render();
         if (state.btLab) state.btLab.renderCurrentChart();
+      } else if (target === "xray" && state.xrayLab) {
+        state.xrayLab.executeNow();
       }
     });
   });
@@ -153,6 +163,7 @@ function initResizableDrawer() {
     drawer.style.height = `${Math.round(newH)}px`;
     if (state.chart) state.chart.render();
     if (state.btLab) state.btLab.renderCurrentChart();
+    if (state.xrayLab) state.xrayLab.renderCurrentChart();
   });
 
   window.addEventListener("mouseup", () => {
@@ -167,6 +178,7 @@ function initResizableDrawer() {
     setTimeout(() => {
       if (state.chart) state.chart.render();
       if (state.btLab) state.btLab.renderCurrentChart();
+      if (state.xrayLab) state.xrayLab.renderCurrentChart();
     }, 20);
   });
 }
@@ -434,6 +446,9 @@ async function runFormulaEvaluation() {
     renderTable("signal-preview-table", res.sample_rows);
     if (state.chart) state.chart.setData(res.chart_series);
     if (state.btLab) await state.btLab.executeNow();
+    if (state.xrayLab && state.activeTab === "xray") {
+      await state.xrayLab.executeNow();
+    }
   } catch (err) {
     showBanner("formula-error-banner", err.message || String(err));
   } finally {
@@ -478,15 +493,35 @@ async function bootstrap() {
     },
   });
 
+  const getHoldoutLocked = () => state.holdoutLocked;
+  getHoldoutLocked._externalManaged = true;
+
   const canvas = document.getElementById("tv-main-canvas");
   state.chart = new TVDualChart(canvas, updateLegendBar);
   state.btLab = new BacktestLabController({
     getDatasetId: () => state.activeDatasetId,
     getFormula: () => document.getElementById("formula-input").value.trim(),
     getSymbol: () => state.activeSymbol,
+    getHoldoutLocked,
     setSymbolDropdown: syncSymbolSelect,
     candleChart: state.chart,
     onError: (msg) => showBanner("formula-error-banner", msg),
+  });
+  state.xrayLab = new XRayLabController({
+    getDatasetId: () => state.activeDatasetId,
+    getFormula: () => document.getElementById("formula-input").value.trim(),
+    getHoldoutLocked,
+    onPromoteFormula: (expr) => {
+      document.getElementById("formula-input").value = expr;
+      runFormulaEvaluation();
+    },
+    onError: (msg) => showBanner("formula-error-banner", msg),
+  });
+
+  document.getElementById("btn-holdout-vault").addEventListener("click", () => {
+    state.holdoutLocked = !state.holdoutLocked;
+    if (state.btLab) state.btLab.scheduleRun(0);
+    if (state.xrayLab && state.activeTab === "xray") state.xrayLab.scheduleRun(0);
   });
 
   try {

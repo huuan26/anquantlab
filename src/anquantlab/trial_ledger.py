@@ -129,6 +129,32 @@ class TrialLedgerRegistry:
                 holdout_peeks=ledger.holdout_peeks,
             )
 
+    def record_holdout_peek(
+        self,
+        dataset_id: str,
+        peek_key: str,
+        *,
+        holdout_locked: bool,
+    ) -> TrialLedgerSnapshot:
+        """Increment evaluation count and OOS peek counter without mutating return matrix."""
+        with self._lock:
+            ledger = self._ledgers.setdefault(dataset_id, _DatasetLedger())
+            ledger.total_evaluations += 1
+            if not holdout_locked:
+                if ledger.last_holdout_locked or peek_key not in ledger.peeked_keys:
+                    ledger.holdout_peeks += 1
+                    ledger.peeked_keys.add(peek_key)
+            ledger.last_holdout_locked = holdout_locked
+            return TrialLedgerSnapshot(
+                dataset_id=dataset_id,
+                total_evaluations=ledger.total_evaluations,
+                unique_trials=len(ledger.trials),
+                effective_n_trials=ledger.cached_n_eff,
+                trials_sr_std=ledger.cached_sr_std,
+                best_is_sharpe=ledger.best_is_sharpe,
+                holdout_peeks=ledger.holdout_peeks,
+            )
+
     def get_snapshot(self, dataset_id: str) -> TrialLedgerSnapshot:
         with self._lock:
             ledger = self._ledgers.get(dataset_id)

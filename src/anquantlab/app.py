@@ -41,6 +41,8 @@ from .schemas import (  # noqa: E402
 )
 from .store import WorkbenchStore  # noqa: E402
 from .trial_ledger import TrialLedgerRegistry  # noqa: E402
+from .xray_lab import XRayLabEngine  # noqa: E402
+from .xray_schemas import XRayRunRequest, XRayRunResponse  # noqa: E402
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -100,6 +102,7 @@ def create_app(
     store = WorkbenchStore(cfg)
     trial_ledger = TrialLedgerRegistry()
     bt_engine = BacktestLabEngine()
+    xray_engine = XRayLabEngine()
     semaphore = asyncio.Semaphore(cfg.max_concurrent)
 
     app = FastAPI(
@@ -111,6 +114,7 @@ def create_app(
     app.state.store = store
     app.state.trial_ledger = trial_ledger
     app.state.bt_engine = bt_engine
+    app.state.xray_engine = xray_engine
 
     async def _run_guarded(fn: Any, *args: Any) -> Any:
         async with semaphore:
@@ -320,6 +324,19 @@ def create_app(
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"Backtest execution error: {exc}") from exc
+
+    @app.post("/api/xray/run", response_model=XRayRunResponse)
+    async def run_xray(req: XRayRunRequest) -> XRayRunResponse:
+        try:
+            return await _run_guarded(xray_engine.run, store, trial_ledger, req)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FormulaSyntaxError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"X-Ray execution error: {exc}") from exc
 
     @app.get("/api/trials/{dataset_id}", response_model=TrialLedgerSnapshot)
     async def get_trial_ledger(dataset_id: str) -> TrialLedgerSnapshot:

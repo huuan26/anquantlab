@@ -1192,11 +1192,136 @@ textarea:focus-visible {
   grid-template-columns: repeat(5, 1fr);
 }
 
+/* Phase 3: Tab 2 Alpha Pipeline X-Ray & 5-Factor Spanning Check */
+.tv-rail-action {
+  width: 100%;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.tv-xr-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background-color: var(--tv-bg-canvas);
+}
+
+.tv-xr-stage-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background-color: var(--tv-border);
+  border-bottom: 1px solid var(--tv-border);
+  flex-shrink: 0;
+}
+
+.tv-xr-stage-card {
+  background-color: var(--tv-bg-pane);
+  border: none;
+  border-top: 2px solid transparent;
+  padding: 6px 10px;
+  text-align: left;
+  color: var(--tv-text-primary);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.tv-xr-stage-card:hover {
+  background-color: var(--tv-bg-elevated);
+}
+
+.tv-xr-stage-card.active {
+  background-color: var(--tv-bg-elevated);
+  border-top-color: var(--tv-blue);
+}
+
+.tv-xr-card-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.tv-xr-card-metrics {
+  font-size: 10.5px;
+  color: var(--tv-text-secondary);
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-xr-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 10px;
+  background-color: var(--tv-bg-pane);
+  border-bottom: 1px solid var(--tv-border);
+  flex-shrink: 0;
+}
+
+.tv-xr-formula-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tv-xr-code {
+  font-size: var(--fs-xs);
+  color: var(--tv-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-xr-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.tv-xr-verdict {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  max-width: 440px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-xr-matrix-split {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 1px;
+  background-color: var(--tv-border);
+  height: 100%;
+  min-height: 0;
+}
+
+.tv-xr-matrix-split > .tv-table-scroll {
+  background-color: var(--tv-bg-pane);
+}
+
 @media (max-width: 900px) {
   .tv-bt-workspace,
   .tv-editor-split,
-  .tv-forensics-split {
+  .tv-forensics-split,
+  .tv-xr-matrix-split {
     grid-template-columns: 1fr;
+  }
+  .tv-xr-stage-strip {
+    grid-template-columns: repeat(2, 1fr);
   }
   .tv-kpi-strip,
   .tv-kpi-strip-5,
