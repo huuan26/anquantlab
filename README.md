@@ -4,6 +4,8 @@ Interactive Quantitative Alpha & Small-Sample Falsification Terminal powered by 
 
 `anquantlab` turns small-sample and free OHLCV data constraints into rigorous econometric guardrails: endogenous zero-orderbook spread estimation, automated dirty-bar and survivorship forensics, a sealed 75/25 Out-of-Sample Holdout Vault, an eigenvalue-adjusted cumulative Session Trial Ledger, 5-Factor Zoo Spanning checks, Romano-Wolf stepdown falsification, and 1-Click standalone `Polars + polars-anta` code generation.
 
+**Live Web App (No Setup Required):** [http://103.57.223.106:8506/](http://103.57.223.106:8506/)
+
 ## Interactive Demo Walkthrough
 
 ![AnQuantLab English Workbench Demo](docs/anquantlab_demo.webp)
@@ -28,17 +30,30 @@ Interactive Quantitative Alpha & Small-Sample Falsification Terminal powered by 
 5. **Tab 3 - Overfitting Crash-Test & Small-Sample Stress Suite**:
    - Automatic 2D AST parameter perturbation heatmaps with Moore-neighborhood plateau ratios, CSCV Probability of Backtest Overfitting (`pbo_cscv`), and 4-bar Multiple-Testing Sharpe Haircuts (`Observed -> Grid DSR -> Session Ledger DSR -> Empirical-Bayes Posterior`).
    - `200` Stationary Block Bootstrap synthetic worlds paired with `200` Block-Rademacher Null Permuted worlds, a 7-stage Romano-Wolf FWER stepdown funnel, Ploberger-Kramer OLS-CUSUM structural break detection, and a Survivorship Delisting Penalty drag slider.
-6. **1-Click Production Codegen, HTML Tearsheet & Alpha Passport**:
-   - Transpiles validated UI formulas and friction rules into standalone, AST-sandbox-verified `Polars + polars-anta` `.py` scripts (`0` `anquantlab` runtime lock-in), offline single-file HTML tearsheets, and SHA-256 signed `alpha_passport.json` audit manifests.
+6. **1-Click Production Codegen, Bilingual HTML Tearsheet & Alpha Passport**:
+   - Transpiles validated UI formulas and friction rules into standalone, AST-sandbox-verified `Polars + polars-anta` `.py` scripts (`0` `anquantlab` runtime lock-in), offline bilingual (`EN` / `VI`) single-file HTML tearsheets, and SHA-256 signed `alpha_passport.json` audit manifests.
+7. **Bilingual EN / VI Interface, Guided Case Studies & Responsive Layout**:
+   - Auto-detects browser language on first visit (`EN` / `VI` switcher in the top toolbar) across desktop, tablet, and mobile viewports.
+   - Includes a built-in `? Guide` modal with one-click demo case studies (`Overview & Examples`) and direct CSV import instructions for `Binance` and `Stooq`.
 
-## Installation & Quick Start
+## Live Web App & Local Quick Start
+
+### Option A - Hosted Online Demo (Recommended)
+
+Open [http://103.57.223.106:8506/](http://103.57.223.106:8506/) directly in any modern browser. No local Python environment, Node.js, bundler, or CDN access is required.
+
+### Option B - Run Locally on Your Machine
+
+`127.0.0.1:8765` is a local loopback address that is reachable only after starting the server on your own machine:
 
 ```bash
+git clone https://github.com/huuan26/anquantlab.git
+cd anquantlab
 pip install -e .
 anquantlab serve --port 8765
 ```
 
-Open `http://127.0.0.1:8765` in any modern browser. No Node.js, bundler, or external CDN access is required.
+When running locally on `127.0.0.1` (default host and port `8765`), AnQuantLab opens your browser automatically unless `--no-browser` is specified. Use `--host` and `--port` (or `ANQUANTLAB_HOST` / `ANQUANTLAB_PORT`) to customize the bind address.
 
 ## Resource & Server Safety Configuration
 
