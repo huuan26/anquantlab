@@ -41,6 +41,16 @@
         </label>
         <input id="dataset-upload-input" type="file" accept=".parquet,.csv" class="sr-only" />
 
+        <button id="btn-open-public-data" type="button" class="tv-tool-btn" aria-haspopup="dialog" aria-controls="public-data-modal" title="Zero-Key Legal Public Market Data Hub (Binance Orderflow &amp; Stooq Sector ETFs)">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M3 12h18" />
+            <path d="M12 3a14.5 14.5 0 010 18 14.5 14.5 0 010-18z" />
+          </svg>
+          <span>Public Data</span>
+          <span class="tv-kbd num">0-Key</span>
+        </button>
+
         <span class="tv-sep" aria-hidden="true"></span>
 
         <!-- TradingView fx Indicators Trigger -->
@@ -108,6 +118,9 @@
             <span id="legend-formula" class="tv-legend-formula mono">cs_rank(rsi(close, 14))</span>
             <span id="legend-sig-val" class="tv-legend-sig num">--</span>
             <span id="cache-badge" class="tv-micro-tag num">INIT</span>
+            <button id="forensics-pill" type="button" class="tv-micro-tag tv-forensics-pill num" title="Open Free-Data Forensics &amp; Implicit Spread Audit">
+              Health -- | Min Slip -- bps
+            </button>
           </div>
         </div>
         <div class="tv-canvas-wrap">
@@ -157,6 +170,10 @@
           <button type="button" role="tab" aria-selected="true" class="tv-subtab active" data-subtab="editor">
             Pine / Formula Editor
           </button>
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="forensics">
+            <span>Forensics &amp; Spread Audit</span>
+            <span id="forensics-badge" class="tv-inline-badge num">--</span>
+          </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="metrics">
             Signal &amp; Universe Summary
           </button>
@@ -171,6 +188,7 @@
             <button type="button" class="tv-preset-chip mono" data-formula="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)">neutralize(zscore, sector)</button>
             <button type="button" class="tv-preset-chip mono" data-formula="ema(close, 12) - ema(close, 26)">ema(12)-ema(26)</button>
             <button type="button" class="tv-preset-chip mono" data-formula="alpha_101(open, high, low, close)">alpha_101</button>
+            <button id="btn-taker-preset" type="button" class="tv-preset-chip tv-preset-flow mono hidden" data-formula="ema(taker_buy_ratio - 0.5, 12)">ema(taker_buy_ratio-0.5, 12)</button>
           </div>
 
           <button id="btn-evaluate-formula" type="button" class="tv-btn-primary" title="Compile and evaluate causal formula (Ctrl+Enter)">
@@ -213,6 +231,65 @@
         <div class="tv-ast-pane">
           <div class="tv-ast-title">Causal Multi-Pass Execution Plan</div>
           <ol id="stage-list" class="tv-stage-list"></ol>
+        </div>
+      </div>
+
+      <!-- Sub-View 1.5: Free-Data Forensics & Zero-Orderbook Implicit Spread Audit -->
+      <div id="subpanel-forensics" class="tv-subpanel hidden">
+        <div class="tv-kpi-strip tv-kpi-strip-6">
+          <div class="tv-kpi-cell">
+            <div class="tv-kpi-lbl">Data Health</div>
+            <div id="fkpi-health" class="tv-kpi-val num">--</div>
+            <div id="fkpi-health-sub" class="tv-kpi-sub num">--</div>
+          </div>
+          <div class="tv-kpi-cell">
+            <div class="tv-kpi-lbl">Corwin-Schultz Spread</div>
+            <div id="fkpi-cs" class="tv-kpi-val num">--</div>
+            <div id="fkpi-cs-sub" class="tv-kpi-sub num">--</div>
+          </div>
+          <div class="tv-kpi-cell">
+            <div class="tv-kpi-lbl">Roll Spread &amp; Amihud</div>
+            <div id="fkpi-roll" class="tv-kpi-val num">--</div>
+            <div id="fkpi-roll-sub" class="tv-kpi-sub num">--</div>
+          </div>
+          <div class="tv-kpi-cell">
+            <div class="tv-kpi-lbl">Rec. Min Slippage</div>
+            <div id="fkpi-slip" class="tv-kpi-val num">--</div>
+            <div id="fkpi-slip-sub" class="tv-kpi-sub">--</div>
+          </div>
+          <div class="tv-kpi-cell">
+            <div class="tv-kpi-lbl">Survivorship Audit</div>
+            <div id="fkpi-surv" class="tv-kpi-val num">--</div>
+            <div id="fkpi-surv-sub" class="tv-kpi-sub num">--</div>
+          </div>
+          <div class="tv-kpi-cell">
+            <div class="tv-kpi-lbl">Dirty Bar Counters</div>
+            <div id="fkpi-dirty" class="tv-kpi-val num">--</div>
+            <div id="fkpi-dirty-sub" class="tv-kpi-sub num">--</div>
+          </div>
+        </div>
+
+        <div class="tv-forensics-split">
+          <div class="tv-forensics-pane">
+            <div class="tv-ast-title">Free-Data Hygiene &amp; Microstructure Warnings</div>
+            <ul id="forensics-warnings-list" class="tv-forensics-warn-list"></ul>
+          </div>
+          <div class="tv-forensics-pane">
+            <div class="tv-ast-title">Sample Flagged Bar Anomalies (Top 8)</div>
+            <div class="tv-table-scroll">
+              <table class="tv-table num">
+                <thead>
+                  <tr>
+                    <th>Symbol</th>
+                    <th>Timestamp</th>
+                    <th>Anomaly</th>
+                    <th>Detail</th>
+                  </tr>
+                </thead>
+                <tbody id="forensics-anomalies-body"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -291,6 +368,25 @@
         <aside id="domain-chips" class="tv-modal-domains" aria-label="Indicator Categories"></aside>
         <div id="catalog-list" class="tv-modal-list" role="list"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Zero-Key Legal Public Market Data Hub Modal -->
+  <div id="public-data-modal" class="tv-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="public-data-title">
+    <div class="tv-modal tv-public-modal">
+      <div class="tv-modal-header">
+        <div>
+          <h2 id="public-data-title" class="tv-modal-title">Zero-Key Public Market Data Hub</h2>
+          <div id="public-cache-meta" class="tv-muted-meta mono">Cache outside Git repo</div>
+        </div>
+        <button id="btn-close-public-data" type="button" class="tv-icon-btn" aria-label="Close Public Data dialog">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="public-data-error" class="tv-banner tv-banner-err hidden" role="alert"></div>
+      <div id="public-preset-list" class="tv-public-preset-list"></div>
     </div>
   </div>
 

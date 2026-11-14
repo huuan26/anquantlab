@@ -15,11 +15,19 @@ import polars_anta as pa
 from .config import Settings
 from .demo_data import generate_demo_panel, generate_demo_single_futures
 from .expr_dsl import CompiledFormulaPlan, evaluate_formula
-from .schemas import DatasetInfo, DatasetPreviewResponse, ExecutionStageInfo
+from .forensics import analyze_dataset_forensics
+from .public_data import PUBLIC_PRESETS, HttpGetter, fetch_or_load_public_preset, preset_cache_path
+from .schemas import (
+    DatasetForensicsResponse,
+    DatasetInfo,
+    DatasetPreviewResponse,
+    ExecutionStageInfo,
+)
 
 _TIME_CANDIDATES = ("date", "timestamp", "datetime", "time")
 _SYMBOL_CANDIDATES = ("ticker", "symbol", "asset", "code")
 _SECTOR_CANDIDATES = ("sector", "industry", "group")
+_OPTIONAL_NUMERIC_COLS = ("quote_volume", "trade_count", "taker_buy_volume", "taker_buy_ratio")
 
 
 @dataclass
@@ -79,6 +87,9 @@ def _normalize_ohlcv_frame(df: pl.DataFrame) -> tuple[pl.DataFrame, str, str | N
     casts: list[pl.Expr] = [
         pl.col(c).cast(pl.Float64) for c in ("open", "high", "low", "close", "volume")
     ]
+    for opt_c in _OPTIONAL_NUMERIC_COLS:
+        if opt_c in df.columns:
+            casts.append(pl.col(opt_c).cast(pl.Float64))
     if df.schema[time_col] == pl.String:
         casts.append(pl.col(time_col).str.to_datetime(strict=False).alias(time_col))
     if symbol_col is not None:
@@ -100,8 +111,10 @@ class WorkbenchStore:
         self._signal_cache: OrderedDict[
             tuple[str, str], tuple[pl.DataFrame, CompiledFormulaPlan, list[ExecutionStageInfo]]
         ] = OrderedDict()
+        self._forensics_cache: dict[str, DatasetForensicsResponse] = {}
         self._register_builtins()
         self._register_readonly_paths()
+        self._register_cached_public()
 
     def _register_builtins(self) -> None:
         self._datasets["builtin_demo_panel"] = DatasetEntry(
@@ -157,6 +170,29 @@ class WorkbenchStore:
                     df=None,
                     readonly_path=path,
                     sha256_prefix=_hash_file_prefix(path),
+                )
+            except Exception:
+                continue
+
+    def _register_cached_public(self) -> None:
+        for spec in PUBLIC_PRESETS.values():
+            cpath = preset_cache_path(self.settings, spec.preset_id)
+            ds_id = f"public_{spec.preset_id}"
+            if not cpath.is_file() or ds_id in self._datasets:
+                continue
+            try:
+                cols = list(pl.read_parquet_schema(cpath).keys())
+                self._datasets[ds_id] = DatasetEntry(
+                    dataset_id=ds_id,
+                    name=spec.name,
+                    source_kind="public_cache",
+                    description=spec.description,
+                    time_col=_detect_col(cols, _TIME_CANDIDATES) or "timestamp",
+                    symbol_col=_detect_col(cols, _SYMBOL_CANDIDATES),
+                    sector_col=_detect_col(cols, _SECTOR_CANDIDATES),
+                    df=None,
+                    readonly_path=cpath,
+                    sha256_prefix=_hash_file_prefix(cpath),
                 )
             except Exception:
                 continue
@@ -315,3 +351,43 @@ class WorkbenchStore:
         while len(self._signal_cache) > self.settings.max_cached_signals:
             self._signal_cache.popitem(last=False)
         return sig_df, plan, stages, False
+
+    def build_forensics(self, dataset_id: str) -> DatasetForensicsResponse:
+        if dataset_id in self._forensics_cache:
+            return self._forensics_cache[dataset_id]
+        entry, df = self.get_frame(dataset_id)
+        res = analyze_dataset_forensics(
+            dataset_id, df, time_col=entry.time_col, symbol_col=entry.symbol_col
+        )
+        self._forensics_cache[dataset_id] = res
+        return res
+
+    def fetch_public_dataset(
+        self,
+        preset_id: str,
+        *,
+        force_refresh: bool = False,
+        http_get: HttpGetter | None = None,
+    ) -> DatasetInfo:
+        spec, raw_df, cpath = fetch_or_load_public_preset(
+            preset_id, self.settings, force_refresh=force_refresh, http_get=http_get
+        )
+        norm_df, t_col, s_col, sec_col = _normalize_ohlcv_frame(raw_df)
+        ds_id = f"public_{spec.preset_id}"
+        entry = DatasetEntry(
+            dataset_id=ds_id,
+            name=spec.name,
+            source_kind="public_zero_key",
+            description=spec.description,
+            time_col=t_col,
+            symbol_col=s_col,
+            sector_col=sec_col,
+            df=norm_df,
+            readonly_path=cpath,
+            sha256_prefix=_hash_file_prefix(cpath),
+        )
+        self._datasets[ds_id] = entry
+        self._forensics_cache.pop(ds_id, None)
+        for k in [k for k in self._signal_cache if k[0] == ds_id]:
+            self._signal_cache.pop(k, None)
+        return self._to_info(entry)

@@ -925,11 +925,156 @@ textarea:focus-visible {
   color: var(--tv-text-muted);
 }
 
+/* Phase 1.5: Forensics & Zero-Key Public Data Hub */
+.tv-forensics-pill {
+  pointer-events: auto;
+  cursor: pointer;
+  border: 1px solid var(--tv-border-strong);
+  background-color: var(--tv-bg-pane);
+  color: var(--tv-text-secondary);
+  font-family: inherit;
+  transition: background-color 150ms ease;
+}
+
+.tv-forensics-pill:hover {
+  background-color: var(--tv-bg-elevated);
+}
+
+.tv-inline-badge {
+  margin-left: 5px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.tv-preset-flow {
+  border-color: var(--tv-blue);
+  color: var(--tv-blue);
+}
+
+.tv-kpi-strip-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.tv-forensics-split {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  border-top: 1px solid var(--tv-border);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tv-forensics-pane {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+.tv-forensics-pane + .tv-forensics-pane {
+  border-left: 1px solid var(--tv-border);
+}
+
+.tv-forensics-warn-list {
+  margin: 4px 0 0 0;
+  padding-left: 16px;
+  font-size: var(--fs-xs);
+  line-height: 1.5;
+  color: var(--tv-text-secondary);
+}
+
+.forensics-warn-item {
+  color: var(--tv-warn);
+  margin-bottom: 3px;
+}
+
+.forensics-ok-item {
+  color: var(--tv-up);
+}
+
+.val-warn {
+  color: var(--tv-warn);
+  font-weight: 600;
+}
+
+.tag-blue {
+  background-color: var(--tv-blue-soft);
+  color: var(--tv-blue);
+}
+
+.tag-up {
+  background-color: var(--tv-up-soft);
+  color: var(--tv-up);
+}
+
+.tv-public-modal {
+  max-width: 680px;
+  height: auto;
+  max-height: 82vh;
+}
+
+.tv-public-preset-list {
+  padding: 10px 14px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.public-preset-card {
+  border: 1px solid var(--tv-border);
+  border-radius: 4px;
+  padding: 9px 12px;
+  background-color: var(--tv-bg-pane);
+  transition: border-color 150ms ease;
+}
+
+.public-preset-card:hover {
+  border-color: var(--tv-border-strong);
+}
+
+.public-preset-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.public-preset-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.public-preset-name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--tv-text-primary);
+}
+
+.public-preset-tags,
+.public-preset-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.public-preset-desc {
+  font-size: var(--fs-xs);
+  color: var(--tv-text-secondary);
+  line-height: 1.4;
+}
+
 @media (max-width: 900px) {
-  .tv-editor-split {
+  .tv-editor-split,
+  .tv-forensics-split {
     grid-template-columns: 1fr;
   }
-  .tv-kpi-strip {
+  .tv-kpi-strip,
+  .tv-kpi-strip-6 {
     grid-template-columns: repeat(2, 1fr);
   }
   .tv-dist-strip {

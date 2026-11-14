@@ -33,6 +33,22 @@ export async function fetchDatasetPreview(datasetId) {
   return requestJson(`/api/datasets/${encodeURIComponent(datasetId)}/preview`);
 }
 
+export async function fetchDatasetForensics(datasetId) {
+  return requestJson(`/api/datasets/${encodeURIComponent(datasetId)}/forensics`);
+}
+
+export async function fetchPublicPresets() {
+  return requestJson("/api/public-data/presets");
+}
+
+export async function fetchPublicDataset(presetId, forceRefresh = false) {
+  return requestJson("/api/public-data/fetch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ preset_id: presetId, force_refresh: forceRefresh }),
+  });
+}
+
 export async function uploadDatasetFile(file) {
   const form = new FormData();
   form.append("file", file);

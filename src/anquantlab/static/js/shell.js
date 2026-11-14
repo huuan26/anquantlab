@@ -5,12 +5,14 @@
 
 import {
   fetchCatalog,
+  fetchDatasetForensics,
   fetchDatasetPreview,
   fetchDatasets,
   fetchHealth,
   previewFormula,
   uploadDatasetFile,
 } from "./api.js";
+import { initPublicDataModal, renderForensicsPanel } from "./forensics_hub.js";
 import { TVDualChart } from "./tv_chart.js";
 
 const state = {
@@ -68,6 +70,19 @@ function applyDensity(density) {
   document.getElementById("density-label").textContent = density === "compact" ? "12px" : "13.5px";
 }
 
+function activateSubTab(target) {
+  const drawer = document.getElementById("tv-bottom-drawer");
+  drawer.classList.remove("collapsed");
+  document.querySelectorAll(".tv-subtab").forEach((b) => {
+    const active = b.dataset.subtab === target;
+    b.classList.toggle("active", active);
+    b.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  ["editor", "forensics", "metrics", "table"].forEach((id) => {
+    document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
+  });
+}
+
 function initModeAndSubTabs() {
   const modeBtns = document.querySelectorAll(".tv-mode-tab");
   modeBtns.forEach((btn) => {
@@ -85,22 +100,14 @@ function initModeAndSubTabs() {
     });
   });
 
-  const subBtns = document.querySelectorAll(".tv-subtab");
-  subBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const target = btn.dataset.subtab;
-      const drawer = document.getElementById("tv-bottom-drawer");
-      drawer.classList.remove("collapsed");
-      subBtns.forEach((b) => {
-        const active = b.dataset.subtab === target;
-        b.classList.toggle("active", active);
-        b.setAttribute("aria-selected", active ? "true" : "false");
-      });
-      ["editor", "metrics", "table"].forEach((id) => {
-        document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
-      });
-    });
+  document.querySelectorAll(".tv-subtab").forEach((btn) => {
+    btn.addEventListener("click", () => activateSubTab(btn.dataset.subtab));
   });
+
+  const forensicsPill = document.getElementById("forensics-pill");
+  if (forensicsPill) {
+    forensicsPill.addEventListener("click", () => activateSubTab("forensics"));
+  }
 
   const btnSig = document.getElementById("btn-tbl-signal");
   const btnRaw = document.getElementById("btn-tbl-raw");
@@ -323,7 +330,10 @@ function showBanner(id, msg) {
 }
 
 async function loadActiveDatasetPreview() {
-  const preview = await fetchDatasetPreview(state.activeDatasetId);
+  const [preview, forensics] = await Promise.all([
+    fetchDatasetPreview(state.activeDatasetId),
+    fetchDatasetForensics(state.activeDatasetId),
+  ]);
   const info = preview.info;
   state.activeDatasetName = info.name;
   document.getElementById("legend-dataset").textContent = info.name;
@@ -338,6 +348,8 @@ async function loadActiveDatasetPreview() {
   document.getElementById("kpi-hash").textContent = `sha256: ${info.sha256_prefix || "--"}`;
   document.getElementById("dataset-columns-caption").textContent = `Schema: [${info.columns.join(", ")}]`;
   renderTable("dataset-preview-table", preview.sample_rows);
+  renderForensicsPanel(forensics);
+  return { preview, forensics };
 }
 
 async function runFormulaEvaluation() {
@@ -434,6 +446,23 @@ async function bootstrap() {
   initModeAndSubTabs();
   initResizableDrawer();
   initFxModal();
+  initPublicDataModal({
+    onDatasetFetched: async (dsInfo) => {
+      state.activeSymbol = null;
+      await refreshDatasetDropdown(dsInfo.dataset_id);
+      const { preview } = await loadActiveDatasetPreview();
+      const input = document.getElementById("formula-input");
+      if (dsInfo.columns.includes("taker_buy_ratio")) {
+        input.value =
+          dsInfo.symbol_count && dsInfo.symbol_count > 1
+            ? "cs_rank(ema(taker_buy_ratio - 0.5, 12))"
+            : "ema(taker_buy_ratio - 0.5, 12)";
+      } else if (!preview.sectors.length && input.value.includes("sector")) {
+        input.value = "ema(close, 12) - ema(close, 26)";
+      }
+      await runFormulaEvaluation();
+    },
+  });
 
   const canvas = document.getElementById("tv-main-canvas");
   state.chart = new TVDualChart(canvas, updateLegendBar);
@@ -462,11 +491,16 @@ async function bootstrap() {
   document.getElementById("dataset-select").addEventListener("change", async (ev) => {
     state.activeDatasetId = ev.target.value;
     state.activeSymbol = null;
+    const { preview } = await loadActiveDatasetPreview();
     const input = document.getElementById("formula-input");
-    if (state.activeDatasetId !== "builtin_demo_panel" && input.value.includes("sector")) {
+    const cols = preview.info.columns || [];
+    if (input.value.includes("sector") && !cols.includes("sector")) {
       input.value = "ema(close, 12) - ema(close, 26)";
+    } else if (input.value.includes("taker_buy") && !cols.includes("taker_buy_ratio")) {
+      input.value = cols.includes("sector")
+        ? "cs_rank(rsi(close, 14))"
+        : "ema(close, 12) - ema(close, 26)";
     }
-    await loadActiveDatasetPreview();
     await runFormulaEvaluation();
   });
 

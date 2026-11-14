@@ -7,7 +7,8 @@ Interactive Quantitative Alpha & Falsification Workbench built on [polars-anta](
 `anquantlab` provides a zero-Node.js, offline-capable quantitative research workbench combining:
 
 1. **Dynamic 223-Function API Catalog & Safe Causal Formula DSL**: AST-whitelisted expression compiler with automatic multi-pass `.over(symbol)` and `.over(timestamp)` causal staging.
-2. **Backtest & Realtime Cost/Buffer Lab**: Interactive cost, slippage, volatility target, and hysteresis buffer evaluation.
+2. **Free-Data Forensics, Implicit OHLCV Spread Audit & Zero-Key Public Hub**: Automated dirty-bar diagnostics (OHLC violations, split/dividend jumps, zero-volume/frozen bars, survivorship risk grading), zero-orderbook microstructure estimators (`corwin_schultz_spread`, `roll_spread`, `amihud_illiquidity`), and whitelisted zero-key public connectors (`Binance Public Klines` with `taker_buy_ratio` orderflow and `Stooq US Sector ETFs`).
+3. **Backtest & Realtime Cost/Buffer Lab**: Interactive cost, slippage, volatility target, and hysteresis buffer evaluation.
 3. **Alpha Pipeline X-Ray**: Step-by-step cross-sectional diagnostics (`Raw -> cs_winsorize -> neutralize -> orthogonalize`).
 4. **Overfitting & Falsification Crash-Test**: Parameter sweep heatmaps, CSCV Probability of Backtest Overfitting, Deflated Sharpe Ratio, Empirical-Bayes shrinkage, and Romano-Wolf falsification funnels.
 
@@ -29,3 +30,5 @@ All operational bounds are controlled via environment variables (`ANQUANTLAB_*`)
 - `ANQUANTLAB_COMPUTE_TIMEOUT_SEC` (default `15.0`)
 - `ANQUANTLAB_MAX_UPLOAD_MB` (default `50`)
 - `ANQUANTLAB_READONLY_PATHS` (optional semicolon/colon-separated `.parquet`/`.csv` file paths)
+- `ANQUANTLAB_ALLOW_PUBLIC_FETCH` (default `1`; set `0` for strict air-gapped/offline mode)
+- `ANQUANTLAB_CACHE_DIR` (default `~/.anquantlab/public_cache`, outside the Git repository tree)

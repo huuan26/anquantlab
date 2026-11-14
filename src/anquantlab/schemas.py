@@ -20,6 +20,7 @@ class HealthResponse(BaseModel):
     catalog_public_functions: int
     dataset_count: int
     cached_signals: int
+    allow_public_fetch: bool = True
 
 
 class ParameterSpec(BaseModel):
@@ -140,3 +141,58 @@ class FormulaPreviewResponse(BaseModel):
     stats: SignalSummaryStats
     chart_series: list[ChartBarPoint] = Field(default_factory=list)
     sample_rows: list[dict[str, Any]]
+
+
+class AnomalyEvent(BaseModel):
+    symbol: str | None = None
+    timestamp: str
+    kind: str
+    detail: str
+
+
+class DatasetForensicsResponse(BaseModel):
+    dataset_id: str
+    health_score: int
+    grade: str
+    row_count: int
+    symbol_count: int
+    zero_volume_bars: int
+    zero_volume_pct: float
+    frozen_bars: int
+    frozen_pct: float
+    split_suspect_jumps: int
+    ohlc_violations: int
+    duplicate_rows: int
+    late_listings: int
+    early_dropouts: int
+    survivorship_risk: str
+    has_taker_flow: bool
+    corwin_schultz_spread_bps_median: float | None = None
+    corwin_schultz_spread_bps_p90: float | None = None
+    roll_spread_bps_median: float | None = None
+    amihud_illiq_median: float | None = None
+    recommended_min_slippage_bps: float
+    warnings: list[str] = Field(default_factory=list)
+    sample_anomalies: list[AnomalyEvent] = Field(default_factory=list)
+
+
+class PublicPresetInfo(BaseModel):
+    preset_id: str
+    name: str
+    source: str
+    interval: str
+    symbols: list[str]
+    has_taker_flow: bool
+    description: str
+    cached: bool
+
+
+class PublicPresetListResponse(BaseModel):
+    allow_public_fetch: bool
+    cache_dir: str
+    presets: list[PublicPresetInfo]
+
+
+class PublicFetchRequest(BaseModel):
+    preset_id: str = Field(..., min_length=1, max_length=128)
+    force_refresh: bool = False

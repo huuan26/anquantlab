@@ -29,6 +29,17 @@ def _env_float(name: str, default: float, minimum: float = 0.5, maximum: float =
     return max(minimum, min(maximum, val))
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name, "").strip().lower()
+    if not raw:
+        return default
+    if raw in {"1", "true", "yes", "on"}:
+        return True
+    if raw in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
 def _parse_readonly_paths(raw: str) -> tuple[Path, ...]:
     if not raw.strip():
         return ()
@@ -74,6 +85,8 @@ class Settings:
     max_cached_signals: int = 32
     readonly_paths: tuple[Path, ...] = ()
     auto_discover_sibling_data: bool = True
+    allow_public_fetch: bool = True
+    cache_dir: Path = Path.home() / ".anquantlab" / "public_cache"
 
     @property
     def max_upload_bytes(self) -> int:
@@ -87,6 +100,8 @@ def load_settings(
     max_threads: int | None = None,
     max_concurrent: int | None = None,
     extra_readonly_paths: list[Path] | None = None,
+    allow_public_fetch: bool | None = None,
+    cache_dir: Path | None = None,
 ) -> Settings:
     """Load portable configuration from environment variables with optional CLI overrides."""
     resolved_threads = apply_thread_limits(max_threads)
@@ -114,11 +129,22 @@ def load_settings(
             if rp.is_file() and rp not in env_paths:
                 env_paths.append(rp)
 
-    auto_discover = os.environ.get("ANQUANTLAB_AUTO_DISCOVER_SIBLING", "1").strip() not in {
-        "0",
-        "false",
-        "False",
-    }
+    auto_discover = _env_bool("ANQUANTLAB_AUTO_DISCOVER_SIBLING", default=True)
+    resolved_public_fetch = (
+        allow_public_fetch
+        if allow_public_fetch is not None
+        else _env_bool("ANQUANTLAB_ALLOW_PUBLIC_FETCH", default=True)
+    )
+    raw_cache_dir = os.environ.get("ANQUANTLAB_CACHE_DIR", "").strip()
+    resolved_cache_dir = (
+        cache_dir.expanduser().resolve()
+        if cache_dir is not None
+        else (
+            Path(raw_cache_dir).expanduser().resolve()
+            if raw_cache_dir
+            else (Path.home() / ".anquantlab" / "public_cache")
+        )
+    )
 
     return Settings(
         host=resolved_host,
@@ -130,4 +156,6 @@ def load_settings(
         max_cached_signals=max_cached,
         readonly_paths=tuple(env_paths),
         auto_discover_sibling_data=auto_discover,
+        allow_public_fetch=resolved_public_fetch,
+        cache_dir=resolved_cache_dir,
     )

@@ -20,15 +20,19 @@ from fastapi.staticfiles import StaticFiles  # noqa: E402
 from . import __version__  # noqa: E402
 from .catalog import build_catalog  # noqa: E402
 from .expr_dsl import FormulaSyntaxError  # noqa: E402
+from .public_data import HttpGetter, list_public_presets  # noqa: E402
 from .schemas import (  # noqa: E402
     CatalogResponse,
     ChartBarPoint,
+    DatasetForensicsResponse,
     DatasetInfo,
     DatasetListResponse,
     DatasetPreviewResponse,
     FormulaPreviewRequest,
     FormulaPreviewResponse,
     HealthResponse,
+    PublicFetchRequest,
+    PublicPresetListResponse,
     SignalSummaryStats,
 )
 from .store import WorkbenchStore  # noqa: E402
@@ -81,7 +85,11 @@ def _compute_signal_stats(sig_df: pl.DataFrame) -> SignalSummaryStats:
     )
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    *,
+    http_get: HttpGetter | None = None,
+) -> FastAPI:
     """Create a stateless, resource-guarded FastAPI instance for AnQuantLab."""
     cfg = settings or load_settings()
     store = WorkbenchStore(cfg)
@@ -124,6 +132,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             catalog_public_functions=cat.public_functions,
             dataset_count=store.dataset_count(),
             cached_signals=store.cached_signal_count(),
+            allow_public_fetch=cfg.allow_public_fetch,
         )
 
     @app.get("/api/catalog", response_model=CatalogResponse)
@@ -144,6 +153,38 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/datasets/{dataset_id}/forensics", response_model=DatasetForensicsResponse)
+    async def forensics_dataset(dataset_id: str) -> DatasetForensicsResponse:
+        try:
+            return await _run_guarded(store.build_forensics, dataset_id)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.get("/api/public-data/presets", response_model=PublicPresetListResponse)
+    async def get_public_presets() -> PublicPresetListResponse:
+        return await _run_guarded(list_public_presets, cfg)
+
+    @app.post("/api/public-data/fetch", response_model=DatasetInfo)
+    async def fetch_public_data(req: PublicFetchRequest) -> DatasetInfo:
+        try:
+            return await _run_guarded(
+                lambda: store.fetch_public_dataset(
+                    req.preset_id,
+                    force_refresh=req.force_refresh,
+                    http_get=http_get,
+                )
+            )
+        except PermissionError as exc:
+            raise HTTPException(status_code=403, detail=str(exc)) from exc
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
 
     @app.post("/api/datasets/upload", response_model=DatasetInfo)
     async def upload_dataset(file: UploadFile = File(...)) -> DatasetInfo:  # noqa: B008
