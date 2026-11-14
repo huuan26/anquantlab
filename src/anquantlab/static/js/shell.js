@@ -139,6 +139,21 @@ function initModeAndSubTabs() {
     });
   });
 
+  const railBtn = document.getElementById("btn-toggle-rail");
+  if (railBtn) {
+    railBtn.addEventListener("click", () => {
+      const open = document.body.classList.toggle("tv-rail-open");
+      railBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      railBtn.classList.toggle("active", open);
+      window.requestAnimationFrame(() => {
+        if (state.chart) state.chart.render();
+        if (state.btLab) state.btLab.renderCurrentChart();
+        if (state.xrayLab) state.xrayLab.renderCurrentChart();
+        if (state.crashtestLab) state.crashtestLab.renderCurrentChart();
+      });
+    });
+  }
+
   document.querySelectorAll(".tv-subtab").forEach((btn) => {
     btn.addEventListener("click", () => activateSubTab(btn.dataset.subtab));
   });
@@ -169,35 +184,43 @@ function initResizableDrawer() {
   const drawer = document.getElementById("tv-bottom-drawer");
   const savedH = Number(localStorage.getItem("anquantlab_drawer_h"));
   const maxDefaultH = Math.max(150, Math.floor(window.innerHeight * 0.52));
-  if (savedH >= 120 && savedH <= maxDefaultH) {
+  if (window.innerWidth <= 960) {
+    drawer.classList.add("collapsed");
+  } else if (savedH >= 120 && savedH <= maxDefaultH) {
     drawer.style.height = `${savedH}px`;
   }
 
   let dragging = false;
-  splitter.addEventListener("mousedown", (ev) => {
+  const startDrag = (ev) => {
     ev.preventDefault();
     dragging = true;
     drawer.classList.remove("collapsed");
     splitter.classList.add("dragging");
-  });
-
-  window.addEventListener("mousemove", (ev) => {
+  };
+  const moveDrag = (ev) => {
     if (!dragging) return;
+    const pt = ev.touches && ev.touches[0] ? ev.touches[0] : ev;
     const maxDragH = Math.max(150, window.innerHeight * 0.58);
-    const newH = Math.max(110, Math.min(maxDragH, window.innerHeight - ev.clientY));
+    const newH = Math.max(110, Math.min(maxDragH, window.innerHeight - pt.clientY));
     drawer.style.height = `${Math.round(newH)}px`;
     if (state.chart) state.chart.render();
     if (state.btLab) state.btLab.renderCurrentChart();
     if (state.xrayLab) state.xrayLab.renderCurrentChart();
     if (state.crashtestLab) state.crashtestLab.renderCurrentChart();
-  });
-
-  window.addEventListener("mouseup", () => {
+  };
+  const endDrag = () => {
     if (!dragging) return;
     dragging = false;
     splitter.classList.remove("dragging");
     localStorage.setItem("anquantlab_drawer_h", String(drawer.offsetHeight));
-  });
+  };
+
+  splitter.addEventListener("mousedown", startDrag);
+  splitter.addEventListener("touchstart", startDrag, { passive: false });
+  window.addEventListener("mousemove", moveDrag);
+  window.addEventListener("touchmove", moveDrag, { passive: true });
+  window.addEventListener("mouseup", endDrag);
+  window.addEventListener("touchend", endDrag, { passive: true });
 
   document.getElementById("btn-toggle-drawer").addEventListener("click", () => {
     drawer.classList.toggle("collapsed");

@@ -4,6 +4,8 @@
  * Right Stage: Breakeven Transaction Cost Curve + Round-Trip MAE/MFE Excursion Scatter.
  */
 
+import { attachCanvasPointerEvents } from "./canvas_utils.js";
+
 function getPalette() {
   const theme = document.documentElement.getAttribute("data-theme") || "dark";
   if (theme === "light") {
@@ -58,15 +60,17 @@ export class TVEquityLabChart {
   }
 
   _bindEvents() {
-    this.canvas.addEventListener("mousemove", (ev) => {
-      const rect = this.canvas.getBoundingClientRect();
-      this.mousePos = { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
-      this.render();
-    });
-    this.canvas.addEventListener("mouseleave", () => {
-      this.mousePos = null;
-      this.render();
-    });
+    attachCanvasPointerEvents(
+      this.canvas,
+      (pos) => {
+        this.mousePos = { x: pos.x, y: pos.y };
+        this.render();
+      },
+      () => {
+        this.mousePos = null;
+        this.render();
+      }
+    );
     if (typeof ResizeObserver !== "undefined") {
       this._rafId = null;
       new ResizeObserver(() => this._scheduleRender()).observe(this.canvas.parentElement);
@@ -118,10 +122,11 @@ export class TVEquityLabChart {
     ctx.font = '11px "Inter", "IBM Plex Sans", -apple-system, sans-serif';
 
     const showSide = w >= 660;
-    const leftW = showSide ? Math.floor(w * 0.71) : w;
-    this._drawEquityAndDrawdown(ctx, pal, 0, 0, leftW, h);
-
+    const stackVertical = !showSide && h >= 460;
     if (showSide) {
+      const leftW = Math.floor(w * 0.71);
+      this._drawEquityAndDrawdown(ctx, pal, 0, 0, leftW, h);
+
       ctx.strokeStyle = pal.border;
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -140,6 +145,24 @@ export class TVEquityLabChart {
       ctx.stroke();
 
       this._drawMaeMfeScatter(ctx, pal, leftW, topH, sideW, h - topH);
+    } else if (stackVertical) {
+      const eqH = Math.floor(h * 0.56);
+      const midH = Math.floor(h * 0.22);
+      this._drawEquityAndDrawdown(ctx, pal, 0, 0, w, eqH);
+
+      ctx.strokeStyle = pal.border;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, eqH + 0.5);
+      ctx.lineTo(w, eqH + 0.5);
+      ctx.moveTo(0, eqH + midH + 0.5);
+      ctx.lineTo(w, eqH + midH + 0.5);
+      ctx.stroke();
+
+      this._drawCostCurve(ctx, pal, 0, eqH, w, midH);
+      this._drawMaeMfeScatter(ctx, pal, 0, eqH + midH, w, h - eqH - midH);
+    } else {
+      this._drawEquityAndDrawdown(ctx, pal, 0, 0, w, h);
     }
   }
 

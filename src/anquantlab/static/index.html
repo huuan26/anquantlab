@@ -64,24 +64,28 @@
           <span id="catalog-count-badge" class="tv-kbd tv-hide-compact num">223</span>
           <span class="tv-kbd tv-kbd-hint">Ctrl+K</span>
         </button>
-
-        <span class="tv-sep" aria-hidden="true"></span>
-
-        <!-- 3-Tab Research Mode Switcher -->
-        <nav class="tv-mode-tabs" role="tablist" aria-label="Workbench Mode">
-          <button id="tab-btn-backtest" type="button" role="tab" aria-selected="true" aria-controls="panel-backtest" class="tv-mode-tab active" data-tab="backtest">
-            1. Backtest &amp; Cost Lab
-          </button>
-          <button id="tab-btn-xray" type="button" role="tab" aria-selected="false" aria-controls="panel-xray" class="tv-mode-tab" data-tab="xray">
-            2. Alpha Pipeline X-Ray
-          </button>
-          <button id="tab-btn-crashtest" type="button" role="tab" aria-selected="false" aria-controls="panel-crashtest" class="tv-mode-tab" data-tab="crashtest">
-            3. Overfitting Crash-Test
-          </button>
-        </nav>
       </div>
 
+      <!-- 3-Tab Research Mode Switcher -->
+      <nav class="tv-mode-tabs" role="tablist" aria-label="Workbench Mode">
+        <button id="tab-btn-backtest" type="button" role="tab" aria-selected="true" aria-controls="panel-backtest" class="tv-mode-tab active" data-tab="backtest">
+          1. Backtest<span class="tv-hide-phone"> &amp; Cost Lab</span>
+        </button>
+        <button id="tab-btn-xray" type="button" role="tab" aria-selected="false" aria-controls="panel-xray" class="tv-mode-tab" data-tab="xray">
+          2. <span class="tv-hide-phone">Alpha Pipeline </span>X-Ray
+        </button>
+        <button id="tab-btn-crashtest" type="button" role="tab" aria-selected="false" aria-controls="panel-crashtest" class="tv-mode-tab" data-tab="crashtest">
+          3. <span class="tv-hide-phone">Overfitting </span>Crash-Test
+        </button>
+      </nav>
+
       <div class="tv-topbar-right">
+        <button id="btn-toggle-rail" type="button" class="tv-tool-btn tv-mobile-only" aria-expanded="false" title="Show or hide strategy parameter controls">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 6h16M4 12h10M4 18h14" />
+          </svg>
+          <span>Params</span>
+        </button>
         <button id="btn-open-export" type="button" class="tv-tool-btn tv-export-btn" aria-haspopup="dialog" aria-controls="export-modal" title="1-Click Export Production Polars .py, HTML Tearsheet &amp; SHA-256 Alpha Passport">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3v12m0 0l-4-4m4 4l4-4" />

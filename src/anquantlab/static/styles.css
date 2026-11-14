@@ -139,6 +139,7 @@ body {
   flex-direction: column;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -162,7 +163,7 @@ body {
   align-items: center;
   gap: 3px;
   white-space: nowrap;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -178,6 +179,11 @@ body {
   gap: 3px;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.tv-mobile-only,
+.tv-tool-btn.tv-mobile-only {
+  display: none;
 }
 
 .tv-brand {
@@ -266,6 +272,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
 }
 
 .tv-mode-tab {
@@ -459,6 +466,7 @@ textarea:focus-visible {
   flex-shrink: 0;
   background-color: var(--tv-border);
   cursor: ns-resize;
+  touch-action: none;
   transition: background-color 150ms ease;
 }
 
@@ -858,7 +866,8 @@ textarea:focus-visible {
 .tv-modal {
   width: 100%;
   max-width: 780px;
-  height: min(540px, 86vh);
+  height: min(540px, 88dvh);
+  max-height: 92dvh;
   background-color: var(--tv-bg-pane);
   border: 1px solid var(--tv-border-strong);
   border-radius: 6px;
@@ -1481,10 +1490,30 @@ textarea:focus-visible {
 @media (max-width: 1120px) {
   .tv-topbar {
     flex-wrap: wrap;
+    padding: 2px 6px;
+    gap: 2px 6px;
+  }
+  .tv-topbar-left {
+    flex: 1 1 auto;
+    order: 1;
+  }
+  .tv-topbar-right {
+    order: 2;
+  }
+  .tv-mode-tabs {
+    order: 3;
+    flex: 1 0 100%;
+    border-top: 1px solid var(--tv-border);
+    padding-top: 1px;
+  }
+  .tv-mode-tab {
+    flex: 1 1 0;
+    height: 28px;
+    text-align: center;
   }
 }
 
-@media (max-height: 760px) {
+@media (max-height: 760px) and (min-width: 961px) {
   .tv-bottom-drawer {
     height: 205px;
   }
@@ -1497,34 +1526,220 @@ textarea:focus-visible {
   }
 }
 
-@media (max-width: 900px) {
-  .tv-bt-workspace,
+@media (max-width: 960px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+  .tv-shell {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+  .tv-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
+  .tv-mobile-only,
+  .tv-tool-btn.tv-mobile-only {
+    display: inline-flex;
+  }
+  .tv-mobile-only.active {
+    background-color: var(--tv-blue-soft);
+    border-color: var(--tv-blue);
+    color: var(--tv-blue);
+  }
+  .tv-upper-workspace {
+    flex: none;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .tv-bt-workspace {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+  .tv-bt-rail {
+    display: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--tv-border);
+    max-height: 52dvh;
+    overflow-y: auto;
+  }
+  body.tv-rail-open .tv-bt-rail {
+    display: flex;
+  }
+  .tv-canvas-pane,
+  .tv-xr-main {
+    height: auto;
+    overflow: visible;
+  }
+  .tv-bt-topbar,
+  .tv-xr-toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  .tv-chart-legend {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .tv-legend-row {
+    flex-wrap: wrap;
+  }
+  .tv-xr-stage-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .tv-xr-toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .tv-canvas-wrap {
+    flex: none;
+    width: 100%;
+    height: 540px;
+  }
+  #bt-candle-wrap {
+    height: 420px;
+  }
+  #panel-xray .tv-canvas-wrap,
+  #panel-crashtest .tv-canvas-wrap {
+    height: 620px;
+  }
+  .tv-splitter {
+    display: none;
+  }
+  .tv-bottom-drawer {
+    height: auto !important;
+    max-height: none;
+    min-height: 36px;
+    border-top: 1px solid var(--tv-border);
+    overflow: visible;
+  }
+  .tv-bottom-drawer.collapsed .tv-subpanel {
+    display: none;
+  }
+  .tv-bottom-drawer:not(.collapsed) .tv-subpanel {
+    min-height: 220px;
+    max-height: 55dvh;
+    overflow-y: auto;
+  }
   .tv-editor-split,
   .tv-forensics-split,
   .tv-xr-matrix-split {
     grid-template-columns: 1fr;
-  }
-  .tv-xr-stage-strip {
-    grid-template-columns: repeat(2, 1fr);
+    height: auto;
   }
   .tv-kpi-strip,
   .tv-kpi-strip-5,
   .tv-kpi-strip-6 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .tv-dist-strip {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .tv-modal-body {
-    grid-template-columns: 140px 1fr;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .tv-modal-domains {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--tv-border);
+    padding: 4px;
+  }
+}
+
+@media (max-width: 700px) {
+  .tv-hide-phone {
+    display: none;
+  }
+  .tv-topbar {
+    gap: 3px 4px;
+    padding: 3px 6px;
+  }
+  .tv-topbar-left,
+  .tv-topbar-right {
+    width: 100%;
+  }
+  .tv-topbar-right {
+    justify-content: space-between;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tv-topbar-right::-webkit-scrollbar {
+    display: none;
+  }
+  .tv-mode-tab {
+    font-size: 11px;
+    padding: 0 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  #bt-equity-wrap {
+    height: 620px;
+  }
+  #bt-candle-wrap {
+    height: 390px;
+  }
+  #panel-xray .tv-canvas-wrap,
+  #panel-crashtest .tv-canvas-wrap {
+    height: 880px;
+  }
+  .tv-drawer-bar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+  .tv-drawer-tabs {
+    flex: 1 0 100%;
+  }
+  .tv-drawer-actions {
+    flex: 1 0 100%;
+    min-width: 0;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .tv-presets {
+    max-width: none;
+    flex: 1 1 0%;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .tv-presets::-webkit-scrollbar {
+    display: none;
+  }
+  #btn-evaluate-formula,
+  #btn-toggle-drawer {
+    flex-shrink: 0;
   }
 }
 
 @media (pointer: coarse) {
   .tv-select,
   .tv-tool-btn,
-  .tv-icon-btn {
-    min-height: 38px;
+  .tv-icon-btn,
+  .tv-seg-btn,
+  .tv-btn-primary,
+  .tv-mode-tab,
+  .tv-subtab {
+    min-height: 36px;
+  }
+  .tv-range {
+    height: 24px;
   }
 }
 

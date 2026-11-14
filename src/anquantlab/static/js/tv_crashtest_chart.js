@@ -4,6 +4,8 @@
  * (3) 200 Stationary Bootstrap Fan Chart / OLS-CUSUM Bridge, (4) 7-Stage Romano-Wolf Funnel.
  */
 
+import { drawQuadrantHeader, fitCanvasText, renderFourPanels } from "./canvas_utils.js";
+
 function readPalette() {
   const cs = getComputedStyle(document.documentElement);
   const g = (k, fb) => cs.getPropertyValue(k).trim() || fb;
@@ -99,49 +101,20 @@ export class TVCrashTestChart {
       return;
     }
 
-    const midX = Math.floor(w * 0.48);
-    const midY = Math.floor(h * 0.5);
-
-    ctx.strokeStyle = pal.border;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(snap(midX), 0);
-    ctx.lineTo(snap(midX), h);
-    ctx.moveTo(0, snap(midY));
-    ctx.lineTo(w, snap(midY));
-    ctx.stroke();
-
-    const clipDraw = (qx, qy, qw, qh, fn) => {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(qx, qy, qw, qh);
-      ctx.clip();
-      fn(qx, qy, qw, qh);
-      ctx.restore();
-    };
-
-    clipDraw(0, 0, midX, midY, (qx, qy, qw, qh) => this._drawHeatmap(ctx, qx, qy, qw, qh, pal));
-    clipDraw(midX, 0, w - midX, midY, (qx, qy, qw, qh) => this._drawHaircutAndPbo(ctx, qx, qy, qw, qh, pal));
-    clipDraw(0, midY, midX, h - midY, (qx, qy, qw, qh) =>
-      this.bottomLeftMode === "cusum"
-        ? this._drawCusum(ctx, qx, qy, qw, qh, pal)
-        : this._drawBootstrapFan(ctx, qx, qy, qw, qh, pal)
-    );
-    clipDraw(midX, midY, w - midX, h - midY, (qx, qy, qw, qh) => this._drawFunnel(ctx, qx, qy, qw, qh, pal));
+    renderFourPanels(ctx, w, h, pal, snap, 0.48, [
+      (qx, qy, qw, qh) => this._drawHeatmap(ctx, qx, qy, qw, qh, pal),
+      (qx, qy, qw, qh) => this._drawHaircutAndPbo(ctx, qx, qy, qw, qh, pal),
+      (qx, qy, qw, qh) =>
+        this.bottomLeftMode === "cusum"
+          ? this._drawCusum(ctx, qx, qy, qw, qh, pal)
+          : this._drawBootstrapFan(ctx, qx, qy, qw, qh, pal),
+      (qx, qy, qw, qh) => this._drawFunnel(ctx, qx, qy, qw, qh, pal),
+    ]);
     ctx.restore();
   }
 
   _drawHeader(ctx, x, y, w, title, rightMeta, pal) {
-    ctx.font = "600 11px Inter, sans-serif";
-    ctx.fillStyle = pal.text;
-    ctx.textAlign = "left";
-    ctx.fillText(title, x + 12, y + 16);
-    if (rightMeta) {
-      ctx.font = "10.5px 'JetBrains Mono', monospace";
-      ctx.fillStyle = pal.sub;
-      ctx.textAlign = "right";
-      ctx.fillText(rightMeta, x + w - 12, y + 16);
-    }
+    drawQuadrantHeader(ctx, x, y, w, title, rightMeta, pal, 16);
   }
 
   _drawHeatmap(ctx, x, y, w, h, pal) {
@@ -271,8 +244,9 @@ export class TVCrashTestChart {
         const ry = topY + idx * rowH + rowH * 0.5;
         ctx.font = "10px Inter, sans-serif";
         ctx.fillStyle = pal.sub;
-        ctx.textAlign = "right";
-        ctx.fillText(b.stage.replace(/^\d+\.\s*/, ""), bL - 6, ry + 3.5);
+        ctx.textAlign = "left";
+        const rawStage = b.stage.replace(/^\d+\.\s*/, "");
+        ctx.fillText(fitCanvasText(ctx, rawStage, labelW - 6), hL, ry + 3.5);
 
         const targetX = bL + ((b.sharpe_equiv - minV) / span) * bW;
         const bh = Math.max(7, Math.min(16, rowH - 8));
@@ -550,7 +524,7 @@ export class TVCrashTestChart {
       ctx.font = "10px Inter, sans-serif";
       ctx.fillStyle = it.survivors > 0 ? pal.text : pal.muted;
       ctx.textAlign = "left";
-      ctx.fillText(it.gate_label, padL, ry + 3.5);
+      ctx.fillText(fitCanvasText(ctx, it.gate_label, labelW - 8), padL, ry + 3.5);
 
       const frac = Math.max(0, Math.min(1, it.survival_pct / 100.0));
       const bh = Math.max(7, rowH - 7);

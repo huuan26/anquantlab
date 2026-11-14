@@ -2,6 +2,8 @@
  * TradingView-Style Dual-Pane Canvas 2D Renderer (OHLCV Candles + Signal Sub-Pane + Crosshair).
  */
 
+import { attachCanvasPointerEvents } from "./canvas_utils.js";
+
 function readThemePalette() {
   const theme = document.documentElement.getAttribute("data-theme") || "dark";
   if (theme === "light") {
@@ -71,22 +73,23 @@ export class TVDualChart {
   }
 
   _bindEvents() {
-    this.canvas.addEventListener("mousemove", (ev) => {
-      const rect = this.canvas.getBoundingClientRect();
-      this.mousePos = { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
-      this._updateHoverIndex(rect.width);
-      this.render();
-    });
-
-    this.canvas.addEventListener("mouseleave", () => {
-      this.mousePos = null;
-      this.hoverIdx = null;
-      if (this.series.length > 0 && this.onHoverBar) {
-        const last = this.series.length - 1;
-        this.onHoverBar(this.series[last], last > 0 ? this.series[last - 1] : null);
+    attachCanvasPointerEvents(
+      this.canvas,
+      (pos) => {
+        this.mousePos = { x: pos.x, y: pos.y };
+        this._updateHoverIndex(pos.width);
+        this.render();
+      },
+      () => {
+        this.mousePos = null;
+        this.hoverIdx = null;
+        if (this.series.length > 0 && this.onHoverBar) {
+          const last = this.series.length - 1;
+          this.onHoverBar(this.series[last], last > 0 ? this.series[last - 1] : null);
+        }
+        this.render();
       }
-      this.render();
-    });
+    );
 
     if (typeof ResizeObserver !== "undefined") {
       this._rafId = null;

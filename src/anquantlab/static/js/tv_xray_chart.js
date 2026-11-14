@@ -3,6 +3,8 @@
  * Zero external libraries, zero emojis, pixel-snapped hairlines, Dark/Light theme aware.
  */
 
+import { drawQuadrantHeader, fitCanvasText, renderFourPanels } from "./canvas_utils.js";
+
 function readPalette() {
   const cs = getComputedStyle(document.documentElement);
   const g = (k, fb) => cs.getPropertyValue(k).trim() || fb;
@@ -94,50 +96,21 @@ export class TVXRayChart {
       return;
     }
 
-    const midX = Math.floor(w * 0.5);
-    const midY = Math.floor(h * 0.5);
-
-    ctx.strokeStyle = pal.border;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(snap(midX), 0);
-    ctx.lineTo(snap(midX), h);
-    ctx.moveTo(0, snap(midY));
-    ctx.lineTo(w, snap(midY));
-    ctx.stroke();
-
     const showSector =
       this.bottomLeftMode === "sector" ||
       (this.bottomLeftMode === "auto" && this.hasSector && (this.stage.sector_exposures || []).length > 0);
-    const clipDraw = (qx, qy, qw, qh, fn) => {
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(qx, qy, qw, qh);
-      ctx.clip();
-      fn(qx, qy, qw, qh);
-      ctx.restore();
-    };
-
-    clipDraw(0, 0, midX, midY, (qx, qy, qw, qh) => this._drawDistribution(ctx, qx, qy, qw, qh, pal));
-    clipDraw(midX, 0, w - midX, midY, (qx, qy, qw, qh) => this._drawQuantilesAndDecay(ctx, qx, qy, qw, qh, pal));
-    clipDraw(0, midY, midX, h - midY, (qx, qy, qw, qh) =>
-      showSector ? this._drawSectorTilts(ctx, qx, qy, qw, qh, pal) : this._drawCumIc(ctx, qx, qy, qw, qh, pal)
-    );
-    clipDraw(midX, midY, w - midX, h - midY, (qx, qy, qw, qh) => this._drawSpanning(ctx, qx, qy, qw, qh, pal));
+    renderFourPanels(ctx, w, h, pal, snap, 0.5, [
+      (qx, qy, qw, qh) => this._drawDistribution(ctx, qx, qy, qw, qh, pal),
+      (qx, qy, qw, qh) => this._drawQuantilesAndDecay(ctx, qx, qy, qw, qh, pal),
+      (qx, qy, qw, qh) =>
+        showSector ? this._drawSectorTilts(ctx, qx, qy, qw, qh, pal) : this._drawCumIc(ctx, qx, qy, qw, qh, pal),
+      (qx, qy, qw, qh) => this._drawSpanning(ctx, qx, qy, qw, qh, pal),
+    ]);
     ctx.restore();
   }
 
   _drawHeader(ctx, x, y, w, title, rightMeta, pal) {
-    ctx.font = "600 11px Inter, sans-serif";
-    ctx.fillStyle = pal.text;
-    ctx.textAlign = "left";
-    ctx.fillText(title, x + 12, y + 17);
-    if (rightMeta) {
-      ctx.font = "11px 'JetBrains Mono', monospace";
-      ctx.fillStyle = pal.sub;
-      ctx.textAlign = "right";
-      ctx.fillText(rightMeta, x + w - 12, y + 17);
-    }
+    drawQuadrantHeader(ctx, x, y, w, title, rightMeta, pal, 17);
   }
 
   _drawDistribution(ctx, x, y, w, h, pal) {
@@ -539,7 +512,7 @@ export class TVXRayChart {
       ctx.font = "10.5px Inter, sans-serif";
       ctx.fillStyle = ld.selected ? pal.text : pal.muted;
       ctx.textAlign = "right";
-      ctx.fillText(ld.factor_label, barL - 8, ry + 3.5);
+      ctx.fillText(fitCanvasText(ctx, ld.factor_label, labelW - 10), barL - 8, ry + 3.5);
 
       const len = (Math.abs(ld.beta) / maxBeta) * (barW * 0.46);
       const bh = Math.max(6, rowH - 6);
