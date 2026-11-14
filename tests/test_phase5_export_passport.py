@@ -205,7 +205,7 @@ def test_export_bundle_passport_sha256_and_offline_tearsheet(tmp_path: Path) -> 
     assert resp_vi.status_code == 200, resp_vi.text
     html_vi = resp_vi.json()["tearsheet_html"]
     assert '<html lang="vi">' in html_vi
-    assert "Phễu Lọc 7 Cổng" in html_vi
+    assert "Quy trình Kiểm định 7 Bước (Romano-Wolf)" in html_vi
     assert "http://" not in html_vi and "https://" not in html_vi
     assert not _EMOJI_RE.search(html_vi)
     assert "\u2014" not in html_vi and "\u2013" not in html_vi

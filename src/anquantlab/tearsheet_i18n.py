@@ -16,7 +16,7 @@ _CLEARANCE_LABELS: dict[str, dict[str, str]] = {
     "vi": {
         "APPROVED_CANDIDATE": "ĐẠT KIỂM ĐỊNH (APPROVED)",
         "CONDITIONAL_REVIEW": "CẦN XEM XÉT THÊM (CONDITIONAL)",
-        "REJECTED_OVERFIT": "LOẠI - RỦI RO OVERFIT",
+        "REJECTED_OVERFIT": "CHƯA ĐẠT - RỦI RO OVERFIT",
     },
 }
 
@@ -49,7 +49,7 @@ _GATE_MAP_VI: dict[str, str] = {
 _SPANNING_VERDICT_VI: dict[str, str] = {
     "DISTINCT_ALPHA": "TÍN HIỆU ĐỘC LẬP",
     "PARTIAL_OVERLAP": "TRÙNG LẶP MỘT PHẦN",
-    "FACTOR_CLONE": "BẢN SAO YẾU TỐ PHỔ THÔNG",
+    "FACTOR_CLONE": "TRÙNG YẾU TỐ PHỔ THÔNG",
 }
 
 TEXT: dict[str, dict[str, str]] = {
@@ -98,7 +98,7 @@ TEXT: dict[str, dict[str, str]] = {
     "vi": {
         "title": "Báo cáo Kiểm định Chiến lược Định lượng AnQuantLab",
         "expr": "Công thức",
-        "summary_heading": "Kết luận Ngắn gọn (Ngôn ngữ Phổ thông)",
+        "summary_heading": "Tóm tắt Kết quả Kiểm định",
         "insufficient_equity": "Chưa đủ điểm dữ liệu để vẽ đường cong vốn.",
         "svg_aria": "Biểu đồ Đường cong Vốn Danh mục",
         "kpi_net_sr": "Sharpe ròng & Lợi nhuận (IS)",
@@ -109,33 +109,33 @@ TEXT: dict[str, dict[str, str]] = {
         "kpi_span": "Độ độc lập trước 5 Yếu tố Phổ thông",
         "kpi_span_val": "{pure:.1f}% Độc lập",
         "kpi_span_sub": "Trùng lặp R2 {r2:.1f}% ({verdict})",
-        "kpi_ct": "Kiểm định Chống Overfitting (Ăn may)",
+        "kpi_ct": "Kiểm định Độ bền & Overfitting",
         "kpi_ct_sub": "Null p={nullp:.3f} | Đạt RW {rw}/{k} | EB SR {eb:+.2f}",
         "sec_equity": "Đường cong Vốn (Lãi ròng vs Gộp vs Tham chiếu - {vault})",
         "vault_locked": "Khóa 25% dữ liệu OOS",
         "vault_full": "Toàn bộ mẫu",
         "ds_foot": (
-            "Dữ liệu: {name} (sha256:{sha}) | Sức khỏe {health:.0f}/100"
-            " | Rủi ro sống sót {surv} | Trượt giá CS {cs:.1f} bps"
+            "Dữ liệu: {name} (sha256:{sha}) | Chất lượng {health:.0f}/100"
+            " | Thiên lệch mã cũ {surv} | Trượt giá CS {cs:.1f} bps"
         ),
-        "sec_funnel": "Phễu Lọc 7 Cổng Chống Ăn May (Romano-Wolf)",
-        "th_gate": "Hàng rào Kiểm định",
+        "sec_funnel": "Quy trình Kiểm định 7 Bước (Romano-Wolf)",
+        "th_gate": "Tiêu chí Kiểm định",
         "th_surv": "Số đạt",
         "th_share": "Tỷ lệ",
-        "sec_xray": "Giải phẫu Tín hiệu qua 4 Bước Làm sạch",
+        "sec_xray": "Phân rã Tín hiệu qua 4 Bước Xử lý",
         "th_stage": "Bước",
         "th_ic": "IC TB",
         "th_icir": "ICIR",
         "th_nwt": "NW t",
         "th_spread": "Top-Đáy",
         "th_tilt": "Lệch ngành",
-        "sec_span": "Mức độ Trùng lặp với 5 Yếu tố Phổ thông",
+        "sec_span": "Tương quan với 5 Yếu tố Thị trường Phổ thông",
         "th_bench": "Yếu tố Tham chiếu",
         "th_beta": "Hệ số Beta",
         "th_dkt": "DK NW t",
         "th_pratt": "Đóng góp R2",
         "th_post": "Dư sau lọc",
-        "sec_code": "Mã Python Polars + polars-anta Sẵn sàng Chạy Thật (Đã qua AST Sandbox)",
+        "sec_code": "Mã Python Polars + polars-anta Sẵn sàng Triển khai (Đã qua AST Sandbox)",
     },
 }
 
@@ -182,12 +182,12 @@ def build_executive_summary(passport: AlphaPassportDocument, lang: str) -> str:
         )
         if passport.overall_clearance == "APPROVED_CANDIDATE":
             verdict_part = (
-                f"3) Kết luận: ĐẠT kiểm định ({rw_s} biến thể qua 7 cổng, PBO {pbo_pct:.1f}%)."
+                f"3) Kết luận: ĐẠT kiểm định ({rw_s} biến thể đạt 7 tiêu chí, PBO {pbo_pct:.1f}%)."
             )
         elif passport.overall_clearance == "REJECTED_OVERFIT":
             verdict_part = (
-                f"3) Kết luận: LOẠI - KHÔNG NÊN CHẠY TIỀN THẬT ({rw_s} biến thể qua 7 cổng; "
-                f"PBO {pbo_pct:.1f}%, nguy cơ ăn may hoặc lỗ sau phí)."
+                f"3) Kết luận: CHƯA ĐẠT ({rw_s} biến thể đạt 7 tiêu chí; "
+                f"PBO {pbo_pct:.1f}%, rủi ro overfitting hoặc chi phí giao dịch cao)."
             )
         else:
             verdict_part = (

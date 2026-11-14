@@ -11,7 +11,7 @@ export const EN = {
   "nav.indicators": "Indicators",
   "nav.indicators_title": "Browse 223 causal formula functions (Ctrl+K)",
   "nav.guide": "Guide",
-  "nav.guide_title": "Open 30-second overview, 1-click case study demos & real data download guide",
+  "nav.guide_title": "Open workflow overview, 1-click scenarios & real data download guide",
   "nav.tab_backtest": "1. Backtest",
   "nav.tab_xray": "2. <span class=\"tv-hide-phone\">Factor </span>X-Ray",
   "nav.tab_crashtest": "3. Crash-Test",
@@ -241,7 +241,7 @@ export const EN = {
   "canvas.funnel": "Romano-Wolf Funnel",
   "canvas.survived": "Survived {s}/{t}",
 
-  "verdict.more": "30s Guide & Demos",
+  "verdict.more": "Guide & Examples",
   "verdict.pass": "PASS",
   "verdict.warn": "CAUTION",
   "verdict.fail": "REJECT",

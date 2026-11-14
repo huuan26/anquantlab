@@ -29,7 +29,7 @@ const GATE_VI = {
   "1. Grid Parameter Sweep": "1. Quét lưới Tham số",
   "2. Net Friction Sharpe > 0": "2. Sharpe Ròng > 0",
   "3. Newey-West HAC t >= 1.96": "3. Kiểm định t >= 1.96",
-  "4. BH-FDR q-val <= 0.10": "4. Lọc sai số FDR <= 0.10",
+  "4. BH-FDR q-val <= 0.10": "4. Kiểm soát FDR <= 0.10",
   "5. Romano-Wolf FWER p <= 0.05": "5. Romano-Wolf p <= 0.05",
   "6. Empirical-Bayes P(SR>0) >= 80%": "6. Hậu nghiệm >= 80%",
   "7. OLS-CUSUM Mean Stability": "7. Ổn định Cấu trúc CUSUM",
@@ -38,20 +38,20 @@ const GATE_VI = {
 const HAIRCUT_VI = {
   "Observed Peak SR": "Sharpe Đỉnh",
   "Grid DSR Haircut": "Trừ Quét lưới",
-  "Session Ledger DSR": "Trừ Nhiều lần",
+  "Session Ledger DSR": "Trừ Thử nghiệm",
   "Empirical-Bayes SR": "Hậu nghiệm EB",
 };
 
 const VERDICT_VI = {
   DISTINCT_ALPHA: "TÍN HIỆU ĐỘC LẬP",
   PARTIAL_OVERLAP: "TRÙNG LẶP MỘT PHẦN",
-  FACTOR_CLONE: "SAO CHÉP YẾU TỐ PHỔ THÔNG",
+  FACTOR_CLONE: "TRÙNG YẾU TỐ PHỔ THÔNG",
   SURVIVES_FALSIFICATION: "ĐẠT KIỂM ĐỊNH THỐNG KÊ",
-  MIXED_EVIDENCE: "CHƯA RÕ RÀNG (CẨN TRỌNG)",
-  OVERFIT_REJECTED: "LOẠI - NGUY CƠ OVERFIT",
-  APPROVED_CANDIDATE: "ĐẠT CHUẨN XUẤT BẢN",
+  MIXED_EVIDENCE: "CẦN THEO DÕI THÊM",
+  OVERFIT_REJECTED: "CHƯA ĐẠT - RỦI RO OVERFIT",
+  APPROVED_CANDIDATE: "ĐẠT KIỂM ĐỊNH",
   CONDITIONAL_REVIEW: "CẦN XEM XÉT THÊM",
-  REJECTED_OVERFIT: "LOẠI - RỦI RO OVERFIT",
+  REJECTED_OVERFIT: "CHƯA ĐẠT - RỦI RO OVERFIT",
 };
 
 export function detectInitialLang() {

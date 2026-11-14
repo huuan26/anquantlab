@@ -194,11 +194,11 @@ export class CrashTestLabController {
         "2. CSCV (PBO)",
         `PBO ${(pbo.pbo * 100).toFixed(1)}%`,
         pbo.pbo < 0.35 ? "val-pos" : pbo.pbo >= 0.55 ? "val-neg" : "val-warn",
-        `${vi ? "Lỗ OOS" : "OOS Loss"} ${(pbo.prob_oos_loss * 100).toFixed(1)}%`,
-        `${pbo.n_combinations.toLocaleString()} ${vi ? "lát cắt" : "splits"} | Slope ${pbo.degradation_slope.toFixed(2)}`,
+        `${vi ? "Âm OOS" : "OOS Loss"} ${(pbo.prob_oos_loss * 100).toFixed(1)}%`,
+        `${pbo.n_combinations.toLocaleString()} ${vi ? "tổ hợp" : "splits"} | Slope ${pbo.degradation_slope.toFixed(2)}`,
       ],
       [
-        vi ? "3. Giả lập Bootstrap" : "3. Bootstrap",
+        vi ? "3. Bootstrap" : "3. Bootstrap",
         `Null p ${bs.null_p_value.toFixed(3)}`,
         bs.null_p_value <= 0.05 ? "val-pos" : bs.null_p_value > 0.25 ? "val-neg" : "val-warn",
         `Med ${fmtSigned(bs.sharpe_median, 2)} | Null95 ${bs.null_sharpe_95.toFixed(2)}`,
@@ -208,8 +208,8 @@ export class CrashTestLabController {
         "4. Romano-Wolf",
         `RW ${rwGate.survivors}/${rwGate.total}`,
         rwGate.survivors > 0 && !cs.has_break ? "val-pos" : cs.has_break ? "val-warn" : "",
-        `${vi ? "Qua 7 cổng" : "All-7 Pass"} ${finalGate.survivors}/${finalGate.total}`,
-        `CUSUM Q ${cs.statistic.toFixed(2)} (${cs.has_break ? (vi ? "GÃY" : "BREAK") : vi ? "ỔN ĐỊNH" : "STABLE"})`,
+        `${vi ? "Đạt 7 bước" : "All-7 Pass"} ${finalGate.survivors}/${finalGate.total}`,
+        `CUSUM Q ${cs.statistic.toFixed(2)} (${cs.has_break ? (vi ? "BIẾN ĐỘNG" : "BREAK") : vi ? "ỔN ĐỊNH" : "STABLE"})`,
       ],
     ];
 

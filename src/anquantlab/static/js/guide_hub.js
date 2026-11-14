@@ -47,8 +47,8 @@ export function renderPlainVerdict(tabKey, res, params = null) {
     const badge = tone === "pos" ? t("verdict.pass") : tone === "warn" ? t("verdict.warn") : t("verdict.fail");
     const msg =
       lang === "vi"
-        ? `Lãi gộp ${grossPct}%, phí & trượt giá lấy đi ${dragPct}% -> Lãi thực ${netPct}% (chịu được phí tối đa ${be} bps/chiều).`
-        : `Gross return ${grossPct}%, fees & slippage took ${dragPct}% -> Net ${netPct}% (breaks even around ${be} bps 1-way).`;
+        ? `Lợi nhuận gộp ${grossPct}%, chi phí & trượt giá ${dragPct}% -> Lợi nhuận ròng ${netPct}% (ngưỡng chịu phí tối đa ${be} bps/chiều).`
+        : `Gross return ${grossPct}%, fees & slippage took ${dragPct}% -> Net ${netPct}% (breakeven cost ceiling ${be} bps 1-way).`;
     setVerdictDom("bt-plain-verdict", tone, badge, msg);
     return;
   }
@@ -61,8 +61,8 @@ export function renderPlainVerdict(tabKey, res, params = null) {
     const badge = tone === "pos" ? t("verdict.pass") : tone === "neg" ? t("verdict.fail") : t("verdict.warn");
     const msg =
       lang === "vi"
-        ? `Tín hiệu trùng ${spanPct}% với các yếu tố phổ thông (Momentum/Beta), giữ lại ${purePct}% lợi thế độc lập thực sự.`
-        : `${spanPct}% of signal moves like standard market factors; ${purePct}% remains pure independent alpha.`;
+        ? `${spanPct}% biến động tín hiệu trùng với các yếu tố phổ thông (Momentum/Beta); giữ lại ${purePct}% đóng góp độc lập.`
+        : `${spanPct}% of signal variance overlaps standard market factors; ${purePct}% remains independent alpha.`;
     setVerdictDom("xr-plain-verdict", tone, badge, msg);
     return;
   }
@@ -75,10 +75,10 @@ export function renderPlainVerdict(tabKey, res, params = null) {
     const badge = tone === "pos" ? t("verdict.pass") : tone === "neg" ? t("verdict.fail") : t("verdict.warn");
     const msg =
       lang === "vi"
-        ? `${gate.survivors}/${gate.total} biến thể qua đủ 7 hàng rào thống kê (xác suất ăn may PBO ${pboPct}%). ${
-            tone === "pos" ? "Có thể xem xét bước tiếp." : tone === "neg" ? "Nguy cơ overfit cao, chưa nên dùng tiền thật." : "Bằng chứng còn yếu, cần kiểm tra thêm."
+        ? `${gate.survivors}/${gate.total} biến thể đạt đủ 7 tiêu chí thống kê (xác suất overfitting PBO ${pboPct}%). ${
+            tone === "pos" ? "Độ ổn định đạt yêu cầu." : tone === "neg" ? "Rủi ro overfitting cao, chưa phù hợp áp dụng thực tế." : "Kết quả ở mức trung tính, cần theo dõi thêm."
           }`
-        : `${gate.survivors}/${gate.total} variants passed all 7 statistical gates (PBO luck risk ${pboPct}%). ${
+        : `${gate.survivors}/${gate.total} variants passed all 7 statistical gates (PBO overfitting risk ${pboPct}%). ${
             tone === "pos" ? "Resilient against overfitting." : tone === "neg" ? "High overfit risk - avoid live deployment." : "Borderline robustness - inspect further."
           }`;
     setVerdictDom("ct-plain-verdict", tone, badge, msg);
