@@ -16,18 +16,22 @@ import { BacktestLabController } from "./backtest_view.js";
 import { CrashTestLabController } from "./crashtest_view.js";
 import { initExportModal } from "./export_hub.js";
 import { initPublicDataModal, renderForensicsPanel } from "./forensics_hub.js";
+import { FxCatalogController } from "./fx_modal.js";
+import { initGuideHub } from "./guide_hub.js";
+import { getLang, initI18nControl, t } from "./i18n.js";
 import { TVDualChart } from "./tv_chart.js";
 import { XRayLabController } from "./xray_view.js";
 
 const state = {
-  catalog: null,
-  activeDomain: "all",
-  searchQuery: "",
   activeDatasetId: "builtin_demo_panel",
   activeDatasetName: "Synthetic Panel",
   activeSymbol: null,
   activeTab: "backtest",
   holdoutLocked: true,
+  fxCatalog: null,
+  lastPreviewMeta: null,
+  lastEvalRes: null,
+  engineText: "",
   chart: null,
   btLab: null,
   xrayLab: null,
@@ -233,121 +237,6 @@ function initResizableDrawer() {
   });
 }
 
-function initFxModal() {
-  const modal = document.getElementById("fx-modal");
-  const searchInput = document.getElementById("catalog-search");
-  const openModal = () => {
-    modal.classList.remove("hidden");
-    searchInput.focus();
-    searchInput.select();
-  };
-  const closeModal = () => modal.classList.add("hidden");
-
-  document.getElementById("btn-open-fx").addEventListener("click", openModal);
-  document.getElementById("btn-close-fx").addEventListener("click", closeModal);
-  modal.addEventListener("click", (ev) => {
-    if (ev.target === modal) closeModal();
-  });
-
-  window.addEventListener("keydown", (ev) => {
-    if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === "k") {
-      ev.preventDefault();
-      openModal();
-    } else if (ev.key === "Escape" && !modal.classList.contains("hidden")) {
-      closeModal();
-    }
-  });
-}
-
-function renderDomainChips() {
-  const wrap = document.getElementById("domain-chips");
-  wrap.textContent = "";
-  if (!state.catalog) return;
-
-  const mkChip = (key, label, cnt) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = `domain-chip ${state.activeDomain === key ? "active" : ""}`;
-    const s1 = document.createElement("span");
-    s1.textContent = label;
-    const s2 = document.createElement("span");
-    s2.className = "num";
-    s2.textContent = String(cnt);
-    btn.append(s1, s2);
-    btn.addEventListener("click", () => {
-      state.activeDomain = key;
-      renderDomainChips();
-      renderCatalogItems();
-    });
-    return btn;
-  };
-
-  wrap.appendChild(mkChip("all", "All Exports", state.catalog.total_exports));
-  for (const dom of state.catalog.domains) {
-    wrap.appendChild(mkChip(dom.domain, dom.label, dom.count));
-  }
-}
-
-function renderCatalogItems() {
-  const listEl = document.getElementById("catalog-list");
-  listEl.textContent = "";
-  if (!state.catalog) return;
-
-  const q = state.searchQuery.trim().toLowerCase();
-  const filtered = state.catalog.items.filter((it) => {
-    if (state.activeDomain !== "all" && it.domain !== state.activeDomain) return false;
-    if (!q) return true;
-    return (
-      it.name.toLowerCase().includes(q) ||
-      it.summary.toLowerCase().includes(q) ||
-      it.domain.toLowerCase().includes(q)
-    );
-  });
-
-  const frag = document.createDocumentFragment();
-  for (const item of filtered) {
-    const row = document.createElement("button");
-    row.type = "button";
-    row.className = "catalog-item";
-    row.setAttribute("role", "listitem");
-
-    const top = document.createElement("div");
-    top.className = "catalog-item-top";
-    const fnSpan = document.createElement("span");
-    fnSpan.className = "catalog-fn-name mono";
-    fnSpan.textContent = item.name;
-    const kindSpan = document.createElement("span");
-    kindSpan.className = "catalog-kind-tag mono";
-    kindSpan.textContent = item.kind;
-    top.append(fnSpan, kindSpan);
-
-    const sigDiv = document.createElement("div");
-    sigDiv.className = "catalog-sig mono";
-    sigDiv.textContent = item.signature;
-
-    const descDiv = document.createElement("div");
-    descDiv.className = "catalog-desc";
-    descDiv.textContent = item.summary;
-
-    row.append(top, sigDiv, descDiv);
-    row.addEventListener("click", () => {
-      document.getElementById("fx-modal").classList.add("hidden");
-      if (item.kind === "expr_ts" || item.kind === "expr_cs") {
-        const input = document.getElementById("formula-input");
-        input.value = item.sample_formula;
-        runFormulaEvaluation();
-      } else {
-        showBanner(
-          "formula-notes-banner",
-          `'${item.name}' (${item.kind}) executes in the Portfolio Evaluation & Crash-Test workflows.`
-        );
-      }
-    });
-    frag.appendChild(row);
-  }
-  listEl.appendChild(frag);
-}
-
 function updateLegendBar(bar, prevBar) {
   if (!bar) return;
   const ohlcEl = document.getElementById("legend-ohlc");
@@ -401,24 +290,36 @@ function showBanner(id, msg) {
   el.classList.toggle("hidden", !msg);
 }
 
+function renderDatasetMetaUi() {
+  const preview = state.lastPreviewMeta;
+  if (!preview) return;
+  const info = preview.info;
+  const vi = getLang() === "vi";
+  document.getElementById("legend-dataset").textContent = info.name;
+  document.getElementById("kpi-rows").textContent = info.row_count ? info.row_count.toLocaleString() : "--";
+  document.getElementById("kpi-span").textContent = info.date_start && info.date_end ? `${info.date_start} -> ${info.date_end}` : "--";
+  document.getElementById("kpi-symbols").textContent = info.symbol_count
+    ? `${info.symbol_count} ${vi ? "mã" : "tickers"}`
+    : vi ? "1 chuỗi" : "1 series";
+  document.getElementById("kpi-sectors").textContent = preview.sectors.length
+    ? `${preview.sectors.length} ${vi ? "nhóm ngành" : "sectors"}`
+    : vi ? "Đơn ngành / Chưa phân loại" : "Single / Unclassified";
+
+  const ohlcvEl = document.getElementById("kpi-ohlcv");
+  ohlcvEl.textContent = preview.ohlcv_valid ? t("verdict.pass") : vi ? "CẢNH BÁO" : "WARN";
+  ohlcvEl.style.color = preview.ohlcv_valid ? "var(--tv-up)" : "var(--tv-warn)";
+  document.getElementById("kpi-hash").textContent = `sha256: ${info.sha256_prefix || "--"}`;
+  document.getElementById("dataset-columns-caption").textContent = `${vi ? "Cột dữ liệu" : "Schema"}: [${info.columns.join(", ")}]`;
+}
+
 async function loadActiveDatasetPreview() {
   const [preview, forensics] = await Promise.all([
     fetchDatasetPreview(state.activeDatasetId),
     fetchDatasetForensics(state.activeDatasetId),
   ]);
-  const info = preview.info;
-  state.activeDatasetName = info.name;
-  document.getElementById("legend-dataset").textContent = info.name;
-  document.getElementById("kpi-rows").textContent = info.row_count ? info.row_count.toLocaleString() : "--";
-  document.getElementById("kpi-span").textContent = info.date_start && info.date_end ? `${info.date_start} -> ${info.date_end}` : "--";
-  document.getElementById("kpi-symbols").textContent = info.symbol_count ? `${info.symbol_count} tickers` : "1 series";
-  document.getElementById("kpi-sectors").textContent = preview.sectors.length ? `${preview.sectors.length} sectors` : "Single / Unclassified";
-
-  const ohlcvEl = document.getElementById("kpi-ohlcv");
-  ohlcvEl.textContent = preview.ohlcv_valid ? "PASS" : "WARN";
-  ohlcvEl.style.color = preview.ohlcv_valid ? "var(--tv-up)" : "var(--tv-warn)";
-  document.getElementById("kpi-hash").textContent = `sha256: ${info.sha256_prefix || "--"}`;
-  document.getElementById("dataset-columns-caption").textContent = `Schema: [${info.columns.join(", ")}]`;
+  state.activeDatasetName = preview.info.name;
+  state.lastPreviewMeta = preview;
+  renderDatasetMetaUi();
   renderTable("dataset-preview-table", preview.sample_rows);
   renderForensicsPanel(forensics);
   return { preview, forensics };
@@ -438,6 +339,30 @@ function syncSymbolSelect(availSyms, activeSym) {
   document.getElementById("legend-symbol").textContent = activeSym || state.activeDatasetId;
 }
 
+function renderEvalStatsUi(res) {
+  if (!res) return;
+  const vi = getLang() === "vi";
+  document.getElementById("kpi-coverage").textContent = `${res.stats.coverage_pct.toFixed(1)}%`;
+  document.getElementById("kpi-latency").textContent = `${res.elapsed_ms.toFixed(2)} ms (${res.stats.valid_count.toLocaleString()} ${vi ? "dòng" : "rows"})`;
+
+  const distGrid = document.getElementById("signal-stats-grid");
+  distGrid.textContent = "";
+  const cells = [
+    [vi ? "Trung bình" : "Mean", fmtNum(res.stats.mean)],
+    [vi ? "Độ lệch chuẩn" : "Std Dev", fmtNum(res.stats.std)],
+    ["Min", fmtNum(res.stats.min)],
+    ["Q25", fmtNum(res.stats.q25)],
+    [vi ? "Trung vị" : "Median", fmtNum(res.stats.median)],
+    ["Max", fmtNum(res.stats.max)],
+  ];
+  for (const [lbl, val] of cells) {
+    const box = document.createElement("div");
+    box.className = "stat-cell";
+    box.innerHTML = `<div class="stat-cell-label">${lbl}</div><div class="stat-cell-val">${val}</div>`;
+    distGrid.appendChild(box);
+  }
+}
+
 async function runFormulaEvaluation() {
   const btn = document.getElementById("btn-evaluate-formula");
   const formula = document.getElementById("formula-input").value.trim();
@@ -453,13 +378,12 @@ async function runFormulaEvaluation() {
       chartBars: 160,
       previewLimit: 24,
     });
+    state.lastEvalRes = res;
 
     syncSymbolSelect(res.available_symbols, res.active_symbol);
     document.getElementById("legend-formula").textContent = res.normalized_formula;
     document.getElementById("cache-badge").textContent = res.cache_hit ? "LRU" : "LIVE";
     document.getElementById("editor-latency-hint").textContent = `${res.elapsed_ms.toFixed(2)} ms`;
-    document.getElementById("kpi-coverage").textContent = `${res.stats.coverage_pct.toFixed(1)}%`;
-    document.getElementById("kpi-latency").textContent = `${res.elapsed_ms.toFixed(2)} ms (${res.stats.valid_count.toLocaleString()} rows)`;
 
     if (res.notes && res.notes.length > 0) {
       showBanner("formula-notes-banner", res.notes.join(" | "));
@@ -476,23 +400,7 @@ async function runFormulaEvaluation() {
       stageList.appendChild(li);
     }
 
-    const distGrid = document.getElementById("signal-stats-grid");
-    distGrid.textContent = "";
-    const cells = [
-      ["Mean", fmtNum(res.stats.mean)],
-      ["Std Dev", fmtNum(res.stats.std)],
-      ["Min", fmtNum(res.stats.min)],
-      ["Q25", fmtNum(res.stats.q25)],
-      ["Median", fmtNum(res.stats.median)],
-      ["Max", fmtNum(res.stats.max)],
-    ];
-    for (const [lbl, val] of cells) {
-      const box = document.createElement("div");
-      box.className = "stat-cell";
-      box.innerHTML = `<div class="stat-cell-label">${lbl}</div><div class="stat-cell-val">${val}</div>`;
-      distGrid.appendChild(box);
-    }
-
+    renderEvalStatsUi(res);
     renderTable("signal-preview-table", res.sample_rows);
     if (state.chart) state.chart.setData(res.chart_series);
     if (state.btLab) await state.btLab.executeNow();
@@ -524,10 +432,23 @@ async function refreshDatasetDropdown(selectId = null) {
 }
 
 async function bootstrap() {
+  initI18nControl();
   initThemeAndDensity();
   initModeAndSubTabs();
   initResizableDrawer();
-  initFxModal();
+  state.fxCatalog = new FxCatalogController({
+    onSelectExpr: (formula) => {
+      document.getElementById("formula-input").value = formula;
+      runFormulaEvaluation();
+    },
+    onShowBanner: (txt) => {
+      const msg =
+        getLang() === "vi"
+          ? `Hàm ${txt} chạy tự động trong Kiểm thử Danh mục & Crash-Test.`
+          : `${txt} executes in the Portfolio Evaluation & Crash-Test workflows.`;
+      showBanner("formula-notes-banner", msg);
+    },
+  });
   initPublicDataModal({
     onDatasetFetched: async (dsInfo) => {
       state.activeSymbol = null;
@@ -594,8 +515,41 @@ async function bootstrap() {
         intraday_flatten: document.getElementById("bt-intraday-flat").checked,
         delisting_penalty_bps_yr: Number(document.getElementById("ct-delist-slider").value),
         holdout_locked: state.holdoutLocked,
+        lang: getLang(),
       };
     },
+  });
+  initGuideHub({
+    onRunDemo: async (demo) => {
+      const input = document.getElementById("formula-input");
+      if (input && demo.formula) input.value = demo.formula;
+      if (demo.preset && state.btLab) {
+        const p = demo.preset;
+        if (p.weight) document.getElementById("bt-weight-select").value = p.weight;
+        if (p.slipMode) document.getElementById("bt-slip-mode").value = p.slipMode;
+        if (p.fee !== undefined) document.getElementById("bt-fee-slider").value = String(p.fee);
+        if (p.slip !== undefined) document.getElementById("bt-slip-slider").value = String(p.slip);
+        if (p.buf !== undefined) document.getElementById("bt-buf-slider").value = String(p.buf);
+        if (p.lag !== undefined) document.getElementById("bt-lag-slider").value = String(p.lag);
+        document.getElementById("bt-preset-select").value = "custom";
+        state.btLab._syncSliderLabels();
+      }
+      await runFormulaEvaluation();
+      if (demo.tab && demo.tab !== state.activeTab) {
+        const tabBtn = document.querySelector(`.tv-mode-tab[data-tab="${demo.tab}"]`);
+        if (tabBtn) tabBtn.click();
+      }
+    },
+  });
+
+  window.addEventListener("aql:langchange", () => {
+    renderDatasetMetaUi();
+    renderEvalStatsUi(state.lastEvalRes);
+    const engPill = document.getElementById("engine-status-pill");
+    if (engPill && state.engineText) {
+      engPill.title = t("nav.engine_title", { text: state.engineText });
+    }
+    if (state.chart) state.chart.render();
   });
 
   document.getElementById("btn-holdout-vault").addEventListener("click", () => {
@@ -607,14 +561,12 @@ async function bootstrap() {
 
   try {
     const [health, catalog] = await Promise.all([fetchHealth(), fetchCatalog()]);
-    state.catalog = catalog;
-    const engText = `polars-anta ${health.polars_anta_version} (${health.polars_max_threads}T)`;
-    document.getElementById("engine-status-text").textContent = engText;
+    state.engineText = `polars-anta ${health.polars_anta_version} (${health.polars_max_threads}T)`;
+    document.getElementById("engine-status-text").textContent = state.engineText;
     const engPill = document.getElementById("engine-status-pill");
-    if (engPill) engPill.title = `Engine active: ${engText}`;
+    if (engPill) engPill.title = t("nav.engine_title", { text: state.engineText });
     document.getElementById("catalog-count-badge").textContent = String(catalog.public_functions);
-    renderDomainChips();
-    renderCatalogItems();
+    state.fxCatalog.setCatalog(catalog);
 
     await refreshDatasetDropdown();
     await loadActiveDatasetPreview();
@@ -622,11 +574,6 @@ async function bootstrap() {
   } catch (err) {
     showBanner("formula-error-banner", `Startup error: ${err.message}`);
   }
-
-  document.getElementById("catalog-search").addEventListener("input", (ev) => {
-    state.searchQuery = ev.target.value;
-    renderCatalogItems();
-  });
 
   document.getElementById("dataset-select").addEventListener("change", async (ev) => {
     state.activeDatasetId = ev.target.value;

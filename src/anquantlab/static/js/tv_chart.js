@@ -3,6 +3,7 @@
  */
 
 import { attachCanvasPointerEvents, readChartPalette } from "./canvas_utils.js";
+import { t } from "./i18n.js";
 
 function fmtPrice(val) {
   if (val === null || val === undefined || Number.isNaN(val)) return "--";
@@ -135,7 +136,7 @@ export class TVDualChart {
     if (n === 0) {
       ctx.fillStyle = pal.axisText;
       ctx.font = '12px "Inter", "IBM Plex Sans", sans-serif';
-      ctx.fillText("Compile a formula to render OHLCV & Signal panes", 20, 48);
+      ctx.fillText(t("canvas.wait_candle"), 20, 48);
       ctx.restore();
       return;
     }

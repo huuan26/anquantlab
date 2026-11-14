@@ -3,6 +3,7 @@
  */
 
 import { fetchExportBundle } from "./api.js";
+import { getLang, localizeTag, t } from "./i18n.js";
 
 function triggerDownload(filename, content, mimeType) {
   const blob = new Blob([content], { type: mimeType });
@@ -41,10 +42,14 @@ export function initExportModal({ getExportPayload }) {
   const renderBundle = (b) => {
     currentBundle = b;
     const p = b.passport;
+    const vi = getLang() === "vi";
     const metaEl = document.getElementById("export-passport-meta");
-    const sandboxTxt = b.ast_sandbox_clean ? "AST SANDBOX PASS" : "SANDBOX WARN";
+    const sandboxTxt = b.ast_sandbox_clean
+      ? vi ? "AST SANDBOX ĐẠT" : "AST SANDBOX PASS"
+      : vi ? "CẢNH BÁO SANDBOX" : "SANDBOX WARN";
+    const clearLabel = localizeTag("verdict", p.overall_clearance);
     metaEl.textContent =
-      `${p.overall_clearance} | ${sandboxTxt} | sha256:${p.passport_sha256.slice(0, 16)}... | ${b.elapsed_ms.toFixed(1)} ms`;
+      `${clearLabel} | ${sandboxTxt} | sha256:${p.passport_sha256.slice(0, 16)}... | ${b.elapsed_ms.toFixed(1)} ms`;
     metaEl.className = `tv-muted-meta mono ${
       p.overall_clearance === "APPROVED_CANDIDATE"
         ? "val-pos"
@@ -55,28 +60,51 @@ export function initExportModal({ getExportPayload }) {
 
     const kpiWrap = document.getElementById("export-kpi-strip");
     kpiWrap.textContent = "";
-    const cells = [
-      [
-        "Dataset & Forensics",
-        `${p.dataset_audit.health_score.toFixed(0)}/100`,
-        `sha256:${p.dataset_audit.sha256_prefix || "mem"} | Surv ${p.dataset_audit.survivorship_grade}`,
-      ],
-      [
-        "Net IS Sharpe",
-        `${p.backtest_audit.net_sharpe >= 0 ? "+" : ""}${p.backtest_audit.net_sharpe.toFixed(2)}`,
-        `BE ${p.backtest_audit.breakeven_bps.toFixed(1)} bps | DD ${(p.backtest_audit.max_drawdown * 100).toFixed(1)}%`,
-      ],
-      [
-        "Trial Ledger & DSR",
-        `${(p.trial_ledger_audit.live_dsr * 100).toFixed(1)}%`,
-        `Trials ${p.trial_ledger_audit.unique_trials} | N_eff ${p.trial_ledger_audit.effective_n_trials.toFixed(1)} | Peeks ${p.trial_ledger_audit.holdout_peeks}`,
-      ],
-      [
-        "Spanning & PBO",
-        `PBO ${(p.falsification_audit.pbo * 100).toFixed(1)}%`,
-        `Pure ${(p.xray_audit.orthogonal_share * 100).toFixed(0)}% | Null p=${p.falsification_audit.null_p_value.toFixed(3)}`,
-      ],
-    ];
+    const cells = vi
+      ? [
+          [
+            "Dữ liệu & Sức khỏe",
+            `${p.dataset_audit.health_score.toFixed(0)}/100`,
+            `sha256:${p.dataset_audit.sha256_prefix || "mem"} | Rủi ro ${p.dataset_audit.survivorship_grade}`,
+          ],
+          [
+            "Sharpe Ròng (IS)",
+            `${p.backtest_audit.net_sharpe >= 0 ? "+" : ""}${p.backtest_audit.net_sharpe.toFixed(2)}`,
+            `Hòa vốn ${p.backtest_audit.breakeven_bps.toFixed(1)} bps | Sụt ${(p.backtest_audit.max_drawdown * 100).toFixed(1)}%`,
+          ],
+          [
+            "Sổ Thử nghiệm & DSR",
+            `${(p.trial_ledger_audit.live_dsr * 100).toFixed(1)}%`,
+            `Thử ${p.trial_ledger_audit.unique_trials} | N_eff ${p.trial_ledger_audit.effective_n_trials.toFixed(1)} | Mở OOS ${p.trial_ledger_audit.holdout_peeks}`,
+          ],
+          [
+            "Độc lập & PBO",
+            `PBO ${(p.falsification_audit.pbo * 100).toFixed(1)}%`,
+            `Độc lập ${(p.xray_audit.orthogonal_share * 100).toFixed(0)}% | Null p=${p.falsification_audit.null_p_value.toFixed(3)}`,
+          ],
+        ]
+      : [
+          [
+            "Dataset & Forensics",
+            `${p.dataset_audit.health_score.toFixed(0)}/100`,
+            `sha256:${p.dataset_audit.sha256_prefix || "mem"} | Surv ${p.dataset_audit.survivorship_grade}`,
+          ],
+          [
+            "Net IS Sharpe",
+            `${p.backtest_audit.net_sharpe >= 0 ? "+" : ""}${p.backtest_audit.net_sharpe.toFixed(2)}`,
+            `BE ${p.backtest_audit.breakeven_bps.toFixed(1)} bps | DD ${(p.backtest_audit.max_drawdown * 100).toFixed(1)}%`,
+          ],
+          [
+            "Trial Ledger & DSR",
+            `${(p.trial_ledger_audit.live_dsr * 100).toFixed(1)}%`,
+            `Trials ${p.trial_ledger_audit.unique_trials} | N_eff ${p.trial_ledger_audit.effective_n_trials.toFixed(1)} | Peeks ${p.trial_ledger_audit.holdout_peeks}`,
+          ],
+          [
+            "Spanning & PBO",
+            `PBO ${(p.falsification_audit.pbo * 100).toFixed(1)}%`,
+            `Pure ${(p.xray_audit.orthogonal_share * 100).toFixed(0)}% | Null p=${p.falsification_audit.null_p_value.toFixed(3)}`,
+          ],
+        ];
 
     for (const [lbl, val, sub] of cells) {
       const c = document.createElement("div");
@@ -100,7 +128,10 @@ export function initExportModal({ getExportPayload }) {
   const openAndBuild = async () => {
     modal.classList.remove("hidden");
     errBanner.classList.add("hidden");
-    codePre.textContent = "Compiling standalone Polars + polars-anta script & Alpha Passport...";
+    codePre.textContent =
+      getLang() === "vi"
+        ? "Đang biên dịch mã Python độc lập, Báo cáo HTML & Chứng chỉ SHA-256..."
+        : "Compiling standalone Polars + polars-anta script & Alpha Passport...";
     try {
       const res = await fetchExportBundle(getExportPayload());
       renderBundle(res);
@@ -110,6 +141,14 @@ export function initExportModal({ getExportPayload }) {
       codePre.textContent = "";
     }
   };
+
+  window.addEventListener("aql:langchange", () => {
+    if (!modal.classList.contains("hidden")) {
+      openAndBuild();
+    } else {
+      currentBundle = null;
+    }
+  });
 
   const closeModal = () => modal.classList.add("hidden");
   openBtn.addEventListener("click", openAndBuild);
@@ -136,10 +175,9 @@ export function initExportModal({ getExportPayload }) {
     if (!currentBundle || !navigator.clipboard) return;
     await navigator.clipboard.writeText(currentBundle.python_code);
     const btn = ev.currentTarget;
-    const orig = btn.textContent;
-    btn.textContent = "Copied .py";
+    btn.textContent = t("mod.exp_copied");
     setTimeout(() => {
-      btn.textContent = orig;
+      btn.textContent = t("mod.exp_copy");
     }, 1200);
   });
 

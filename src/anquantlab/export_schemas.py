@@ -22,6 +22,7 @@ class ExportBundleRequest(BaseModel):
     intraday_flatten: bool = False
     delisting_penalty_bps_yr: float = Field(default=0.0, ge=0.0, le=1000.0)
     holdout_locked: bool = True
+    lang: Literal["en", "vi"] = "en"
 
 
 class PassportDatasetAudit(BaseModel):

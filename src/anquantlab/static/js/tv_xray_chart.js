@@ -4,6 +4,7 @@
  */
 
 import { drawQuadrantHeader, fillVerticalFade, fitCanvasText, readChartPalette, renderFourPanels, snapPx as snap } from "./canvas_utils.js";
+import { localizeTag, t } from "./i18n.js";
 
 export class TVXRayChart {
   constructor(canvas) {
@@ -68,7 +69,7 @@ export class TVXRayChart {
       ctx.fillStyle = pal.muted;
       ctx.font = "12px Inter, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Evaluating 4-stage causal X-Ray pipeline...", w / 2, h / 2);
+      ctx.fillText(t("canvas.wait_xray"), w / 2, h / 2);
       ctx.restore();
       return;
     }
@@ -97,7 +98,7 @@ export class TVXRayChart {
       x,
       y,
       w,
-      `${st.label} - Distribution`,
+      t("canvas.dist", { stage: localizeTag("stage", st.label) }),
       `Skew ${st.skew.toFixed(2)} | Kurt ${st.excess_kurtosis.toFixed(2)}`,
       pal
     );
@@ -199,7 +200,7 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "Quantiles & IC Decay",
+      t("canvas.quantiles"),
       `Q5-Q1 ${st.top_minus_bottom_bps >= 0 ? "+" : ""}${st.top_minus_bottom_bps.toFixed(1)}bp | ${hlTxt}`,
       pal
     );
@@ -250,7 +251,7 @@ export class TVXRayChart {
       ctx.font = "11px Inter, sans-serif";
       ctx.fillStyle = pal.muted;
       ctx.textAlign = "center";
-      ctx.fillText("Constant / flat signal", qL + qW / 2, zeroY - 6);
+      ctx.fillText(t("canvas.const_sig"), qL + qW / 2, zeroY - 6);
     }
 
     // Divider between Quantiles and IC Decay
@@ -307,7 +308,7 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "Sector Net Tilt",
+      t("canvas.sector_tilt"),
       `Max ${(st.max_abs_sector_tilt * 100).toFixed(2)}%`,
       pal
     );
@@ -365,7 +366,7 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "Cumulative IC",
+      t("canvas.cum_ic"),
       `IC ${st.ic_mean >= 0 ? "+" : ""}${st.ic_mean.toFixed(4)} | t ${st.nw_t_stat >= 0 ? "+" : ""}${st.nw_t_stat.toFixed(2)}`,
       pal
     );
@@ -381,7 +382,7 @@ export class TVXRayChart {
       ctx.font = "11px Inter, sans-serif";
       ctx.fillStyle = pal.muted;
       ctx.textAlign = "center";
-      ctx.fillText("Insufficient IC periods for cumulative curve", x + w / 2, y + h / 2);
+      ctx.fillText(t("canvas.insuff_ic"), x + w / 2, y + h / 2);
       return;
     }
 
@@ -443,8 +444,8 @@ export class TVXRayChart {
       x,
       y,
       w,
-      "5-Factor Spanning",
-      sp.verdict.replace("_", " "),
+      t("canvas.spanning"),
+      localizeTag("verdict", sp.verdict),
       pal
     );
 
@@ -466,11 +467,11 @@ export class TVXRayChart {
     ctx.font = "10px 'JetBrains Mono', monospace";
     ctx.fillStyle = pal.sub;
     ctx.textAlign = "left";
-    ctx.fillText(`Spanned R2: ${(sp.spanning_r2 * 100).toFixed(1)}%`, padL, meterY + meterH + 12);
+    ctx.fillText(t("canvas.spanned_r2", { pct: (sp.spanning_r2 * 100).toFixed(1) }), padL, meterY + meterH + 12);
     ctx.fillStyle = pal.up;
     ctx.textAlign = "right";
     ctx.fillText(
-      `Pure Orthogonal: ${(sp.orthogonal_share * 100).toFixed(1)}%`,
+      t("canvas.pure_alpha", { pct: (sp.orthogonal_share * 100).toFixed(1) }),
       padR,
       meterY + meterH + 12
     );
@@ -502,7 +503,7 @@ export class TVXRayChart {
       ctx.font = "10.5px Inter, sans-serif";
       ctx.fillStyle = ld.selected ? pal.text : pal.muted;
       ctx.textAlign = "right";
-      ctx.fillText(fitCanvasText(ctx, ld.factor_label, labelW - 10), barL - 8, ry + 3.5);
+      ctx.fillText(fitCanvasText(ctx, localizeTag("factor", ld.factor_label), labelW - 10), barL - 8, ry + 3.5);
 
       const len = (Math.abs(ld.beta) / maxBeta) * (barW * 0.46);
       const bh = Math.max(6, Math.min(12, rowH - 7));

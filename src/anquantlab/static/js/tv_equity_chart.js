@@ -5,6 +5,7 @@
  */
 
 import { attachCanvasPointerEvents, fillVerticalFade, readChartPalette } from "./canvas_utils.js";
+import { t } from "./i18n.js";
 
 export class TVEquityLabChart {
   constructor(canvas, onHoverPoint) {
@@ -130,7 +131,7 @@ export class TVEquityLabChart {
     const n = this.equity.length;
     if (n < 2) {
       ctx.fillStyle = pal.muted;
-      ctx.fillText("No portfolio series available.", x0 + 18, y0 + 48);
+      ctx.fillText(t("canvas.no_port"), x0 + 18, y0 + 48);
       return;
     }
 
@@ -175,7 +176,7 @@ export class TVEquityLabChart {
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = pal.warn;
-      ctx.fillText("OOS VAULT (25%)", ox + 6, y0 + 18);
+      ctx.fillText(t("canvas.oos"), ox + 6, y0 + 18);
     }
 
     // Horizontal grid & axis labels
@@ -283,7 +284,7 @@ export class TVEquityLabChart {
 
   _drawCostCurve(ctx, pal, x0, y0, w, h) {
     ctx.fillStyle = pal.sub;
-    ctx.fillText("Cost Curve (SR vs bps)", x0 + 10, y0 + 16);
+    ctx.fillText(t("canvas.cost_curve"), x0 + 10, y0 + 16);
     if (!this.costCurve || this.costCurve.length < 2) return;
 
     const padL = 34;
@@ -340,12 +341,12 @@ export class TVEquityLabChart {
     ctx.lineTo(curX, y0 + padT + ph);
     ctx.stroke();
     ctx.fillStyle = pal.warn;
-    ctx.fillText(`Now ${this.meta.currentCostBps.toFixed(1)}`, Math.min(x0 + w - 58, curX + 4), y0 + padT + 10);
+    ctx.fillText(t("canvas.now", { v: this.meta.currentCostBps.toFixed(1) }), Math.min(x0 + w - 72, curX + 4), y0 + padT + 10);
   }
 
   _drawMaeMfeScatter(ctx, pal, x0, y0, w, h) {
     ctx.fillStyle = pal.sub;
-    ctx.fillText("Excursion (|MAE| vs MFE)", x0 + 10, y0 + 16);
+    ctx.fillText(t("canvas.excursion"), x0 + 10, y0 + 16);
 
     const padL = 34;
     const padR = 12;
@@ -356,7 +357,7 @@ export class TVEquityLabChart {
 
     if (!this.trades || this.trades.length === 0) {
       ctx.fillStyle = pal.muted;
-      ctx.fillText("No closed round-trip trades.", x0 + padL, y0 + padT + 22);
+      ctx.fillText(t("canvas.no_trades"), x0 + padL, y0 + padT + 22);
       return;
     }
 

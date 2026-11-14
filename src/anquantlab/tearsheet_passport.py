@@ -235,7 +235,9 @@ class ExportBundleEngine:
         }
         canonical_json = json.dumps(draft_dict, sort_keys=True, separators=(",", ":"))
         passport = AlphaPassportDocument(**draft_dict, passport_sha256=_sha256_hex(canonical_json))
-        tearsheet_html = render_tearsheet_html(passport, bt_res, xr_res, ct_res, py_code)
+        tearsheet_html = render_tearsheet_html(
+            passport, bt_res, xr_res, ct_res, py_code, lang=req.lang
+        )
 
         slug = slugify_formula(plan.normalized_formula)
         elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)

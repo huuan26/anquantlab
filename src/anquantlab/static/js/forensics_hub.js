@@ -3,6 +3,10 @@
  */
 
 import { fetchPublicDataset, fetchPublicPresets } from "./api.js";
+import { getLang, t } from "./i18n.js";
+
+let lastVaultState = null;
+let lastForensics = null;
 
 function fmtBps(val) {
   if (val === null || val === undefined || Number.isNaN(Number(val))) return "--";
@@ -17,35 +21,46 @@ function gradeTone(grade) {
 }
 
 export function syncVaultAndLedgerUi(res, dsrText = null) {
+  const effectiveDsr = dsrText !== null ? dsrText : lastVaultState ? lastVaultState.dsrText : null;
+  lastVaultState = { res, dsrText: effectiveDsr };
+
   const vaultBtn = document.getElementById("btn-holdout-vault");
   const tl = res.trial_ledger;
   if (vaultBtn && tl) {
     if (res.holdout_locked) {
-      vaultBtn.textContent = "OOS: Locked";
-      vaultBtn.title = `Holdout Vault Sealed (${res.is_bars} IS bars)`;
+      vaultBtn.textContent = t("nav.oos_locked");
+      vaultBtn.title = t("nav.oos_locked_title", { bars: res.is_bars });
       vaultBtn.className = "tv-tool-btn tv-vault-sealed num";
     } else {
-      vaultBtn.textContent = `OOS: Open (${tl.holdout_peeks})`;
-      vaultBtn.title = `OOS Holdout Unsealed (Peeks: ${tl.holdout_peeks})`;
+      vaultBtn.textContent = t("nav.oos_open", { peeks: tl.holdout_peeks });
+      vaultBtn.title = t("nav.oos_open_title", { peeks: tl.holdout_peeks });
       vaultBtn.className = "tv-tool-btn tv-vault-open num";
     }
   }
   const ledgerText = document.getElementById("trial-ledger-text");
   const ledgerPill = document.getElementById("trial-ledger-pill");
-  if (ledgerText && tl && dsrText !== null) {
-    ledgerText.textContent = `Trials ${tl.unique_trials} | DSR ${dsrText}`;
+  if (ledgerText && tl && effectiveDsr !== null) {
+    ledgerText.textContent = t("nav.trials", { n: tl.unique_trials, dsr: effectiveDsr });
     if (ledgerPill) {
-      ledgerPill.title = `Trials ${tl.unique_trials} | N_eff ${tl.effective_n_trials.toFixed(1)} | DSR ${dsrText}`;
+      ledgerPill.title = t("nav.trials_title", {
+        n: tl.unique_trials,
+        neff: tl.effective_n_trials.toFixed(1),
+        dsr: effectiveDsr,
+      });
     }
   }
 }
 
 export function renderForensicsPanel(f) {
   if (!f) return;
+  lastForensics = f;
+  const vi = getLang() === "vi";
 
   const pill = document.getElementById("forensics-pill");
   if (pill) {
-    pill.textContent = `Health ${f.health_score}/${f.grade} | Slip ${f.recommended_min_slippage_bps.toFixed(1)}bp`;
+    const slipStr = f.recommended_min_slippage_bps.toFixed(1);
+    pill.textContent = t("bt.health_btn", { score: f.health_score, grade: f.grade, slip: slipStr });
+    pill.title = t("bt.health_title", { score: f.health_score, grade: f.grade, slip: slipStr });
     pill.style.color = gradeTone(f.grade);
   }
 
@@ -58,12 +73,14 @@ export function renderForensicsPanel(f) {
   const healthEl = document.getElementById("fkpi-health");
   healthEl.textContent = `${f.health_score} / 100 (${f.grade})`;
   healthEl.style.color = gradeTone(f.grade);
-  document.getElementById("fkpi-health-sub").textContent =
-    `${f.ohlc_violations} OHLC err | ${f.duplicate_rows} dup`;
+  document.getElementById("fkpi-health-sub").textContent = vi
+    ? `${f.ohlc_violations} lỗi OHLC | ${f.duplicate_rows} trùng`
+    : `${f.ohlc_violations} OHLC err | ${f.duplicate_rows} dup`;
 
   document.getElementById("fkpi-cs").textContent = fmtBps(f.corwin_schultz_spread_bps_median);
-  document.getElementById("fkpi-cs-sub").textContent =
-    `P90 tail: ${fmtBps(f.corwin_schultz_spread_bps_p90)}`;
+  document.getElementById("fkpi-cs-sub").textContent = vi
+    ? `Đuôi P90: ${fmtBps(f.corwin_schultz_spread_bps_p90)}`
+    : `P90 tail: ${fmtBps(f.corwin_schultz_spread_bps_p90)}`;
 
   document.getElementById("fkpi-roll").textContent = fmtBps(f.roll_spread_bps_median);
   document.getElementById("fkpi-roll-sub").textContent =
@@ -72,7 +89,7 @@ export function renderForensicsPanel(f) {
   const slipEl = document.getElementById("fkpi-slip");
   slipEl.textContent = `${f.recommended_min_slippage_bps.toFixed(2)} bps`;
   slipEl.style.color = f.recommended_min_slippage_bps > 15 ? "var(--tv-warn)" : "var(--tv-up)";
-  document.getElementById("fkpi-slip-sub").textContent = "1-way half-spread floor";
+  document.getElementById("fkpi-slip-sub").textContent = vi ? "Sàn spread 1 chiều" : "1-way half-spread floor";
 
   const survEl = document.getElementById("fkpi-surv");
   survEl.textContent = f.survivorship_risk;
@@ -82,15 +99,20 @@ export function renderForensicsPanel(f) {
       : f.survivorship_risk === "LOW"
         ? "var(--tv-up)"
         : "var(--tv-text-primary)";
-  document.getElementById("fkpi-surv-sub").textContent =
-    `Late: ${f.late_listings} | Dropouts: ${f.early_dropouts}`;
+  document.getElementById("fkpi-surv-sub").textContent = vi
+    ? `Lên muộn: ${f.late_listings} | Rời sớm: ${f.early_dropouts}`
+    : `Late: ${f.late_listings} | Dropouts: ${f.early_dropouts}`;
 
   const dirtyEl = document.getElementById("fkpi-dirty");
-  dirtyEl.textContent = `${f.split_suspect_jumps} jumps | ${f.zero_volume_bars} 0-vol`;
+  dirtyEl.textContent = vi
+    ? `${f.split_suspect_jumps} nhảy | ${f.zero_volume_bars} vol=0`
+    : `${f.split_suspect_jumps} jumps | ${f.zero_volume_bars} 0-vol`;
   dirtyEl.style.color =
     f.split_suspect_jumps > 0 || f.ohlc_violations > 0 ? "var(--tv-warn)" : "var(--tv-text-primary)";
-  document.getElementById("fkpi-dirty-sub").textContent =
-    `Frozen: ${f.frozen_bars} (${f.frozen_pct}%) | Taker Flow: ${f.has_taker_flow ? "YES" : "NO"}`;
+  const takerYn = f.has_taker_flow ? (vi ? "CÓ" : "YES") : vi ? "KHÔNG" : "NO";
+  document.getElementById("fkpi-dirty-sub").textContent = vi
+    ? `Đóng băng: ${f.frozen_bars} (${f.frozen_pct}%) | Dòng tiền: ${takerYn}`
+    : `Frozen: ${f.frozen_bars} (${f.frozen_pct}%) | Taker Flow: ${takerYn}`;
 
   const takerChip = document.getElementById("btn-taker-preset");
   if (takerChip) {
@@ -102,7 +124,9 @@ export function renderForensicsPanel(f) {
   if (!f.warnings || f.warnings.length === 0) {
     const li = document.createElement("li");
     li.className = "forensics-ok-item";
-    li.textContent = "All automated free-data quality and survivorship checks passed.";
+    li.textContent = vi
+      ? "Tất cả kiểm tra chất lượng dữ liệu & rủi ro sống sót đều đạt."
+      : "All automated free-data quality and survivorship checks passed.";
     warnList.appendChild(li);
   } else {
     for (const w of f.warnings) {
@@ -120,7 +144,9 @@ export function renderForensicsPanel(f) {
     const td = document.createElement("td");
     td.colSpan = 4;
     td.className = "tv-muted-meta";
-    td.textContent = "No bar-level OHLC, split-jump, zero-volume, or frozen-bar anomalies detected.";
+    td.textContent = vi
+      ? "Không phát hiện bất thường về OHLC, chia tách cổ phiếu, vol=0 hoặc nến đứng."
+      : "No bar-level OHLC, split-jump, zero-volume, or frozen-bar anomalies detected.";
     tr.appendChild(td);
     tbody.appendChild(tr);
   } else {
@@ -137,6 +163,11 @@ export function renderForensicsPanel(f) {
     }
   }
 }
+
+window.addEventListener("aql:langchange", () => {
+  if (lastVaultState) syncVaultAndLedgerUi(lastVaultState.res, lastVaultState.dsrText);
+  if (lastForensics) renderForensicsPanel(lastForensics);
+});
 
 export function initPublicDataModal({ onDatasetFetched }) {
   const modal = document.getElementById("public-data-modal");
@@ -156,11 +187,14 @@ export function initPublicDataModal({ onDatasetFetched }) {
   async function refreshPresets() {
     setErr("");
     listEl.textContent = "";
+    const vi = getLang() === "vi";
     try {
       const res = await fetchPublicPresets();
       cacheMeta.textContent = res.allow_public_fetch
-        ? `Cache outside Git repo: ${res.cache_dir}`
-        : "Public network fetch disabled (ANQUANTLAB_ALLOW_PUBLIC_FETCH=0); cached presets only.";
+        ? `${vi ? "Thư mục cache ngoài Git" : "Cache outside Git repo"}: ${res.cache_dir}`
+        : vi
+          ? "Đã tắt tải mạng công khai (ANQUANTLAB_ALLOW_PUBLIC_FETCH=0); chỉ dùng bản đã lưu."
+          : "Public network fetch disabled (ANQUANTLAB_ALLOW_PUBLIC_FETCH=0); cached presets only.";
 
       for (const p of res.presets) {
         const card = document.createElement("div");
@@ -185,20 +219,20 @@ export function initPublicDataModal({ onDatasetFetched }) {
 
         const symTag = document.createElement("span");
         symTag.className = "tv-micro-tag";
-        symTag.textContent = `${p.symbols.length} sym`;
+        symTag.textContent = `${p.symbols.length} ${vi ? "mã" : "sym"}`;
         tags.appendChild(symTag);
 
         if (p.has_taker_flow) {
           const flowTag = document.createElement("span");
           flowTag.className = "tv-micro-tag tag-blue";
-          flowTag.textContent = "TAKER FLOW";
+          flowTag.textContent = vi ? "DÒNG TIỀN TAKER" : "TAKER FLOW";
           tags.appendChild(flowTag);
         }
 
         if (p.cached) {
           const cacheTag = document.createElement("span");
           cacheTag.className = "tv-micro-tag tag-up";
-          cacheTag.textContent = "CACHED";
+          cacheTag.textContent = vi ? "ĐÃ LƯU" : "CACHED";
           tags.appendChild(cacheTag);
         }
 
@@ -211,13 +245,16 @@ export function initPublicDataModal({ onDatasetFetched }) {
         loadBtn.type = "button";
         loadBtn.className = "tv-btn-primary";
         loadBtn.disabled = !res.allow_public_fetch && !p.cached;
-        loadBtn.textContent = p.cached ? "Load Cached" : "Fetch Free";
+        loadBtn.textContent = p.cached ? (vi ? "Nạp từ Cache" : "Load Cached") : vi ? "Tải Miễn phí" : "Fetch Free";
 
         const triggerFetch = async (forceRefresh) => {
           setErr("");
           loadBtn.disabled = true;
           const origLabel = loadBtn.textContent;
-          loadBtn.textContent = forceRefresh ? "Refreshing..." : "Loading...";
+          const nowVi = getLang() === "vi";
+          loadBtn.textContent = forceRefresh
+            ? nowVi ? "Đang làm mới..." : "Refreshing..."
+            : nowVi ? "Đang tải..." : "Loading...";
           try {
             const dsInfo = await fetchPublicDataset(p.preset_id, forceRefresh);
             closeModal();
@@ -236,7 +273,7 @@ export function initPublicDataModal({ onDatasetFetched }) {
           const refBtn = document.createElement("button");
           refBtn.type = "button";
           refBtn.className = "tv-tool-btn";
-          refBtn.textContent = "Refresh";
+          refBtn.textContent = vi ? "Làm mới" : "Refresh";
           refBtn.addEventListener("click", () => triggerFetch(true));
           btnGroup.appendChild(refBtn);
         }
@@ -245,7 +282,7 @@ export function initPublicDataModal({ onDatasetFetched }) {
 
         const desc = document.createElement("div");
         desc.className = "public-preset-desc";
-        desc.textContent = `${p.description} Tickers: ${p.symbols.join(", ")}.`;
+        desc.textContent = `${p.description} ${vi ? "Các mã" : "Tickers"}: ${p.symbols.join(", ")}.`;
 
         card.append(top, desc);
         listEl.appendChild(card);
@@ -267,5 +304,8 @@ export function initPublicDataModal({ onDatasetFetched }) {
     if (ev.key === "Escape" && !modal.classList.contains("hidden")) {
       closeModal();
     }
+  });
+  window.addEventListener("aql:langchange", () => {
+    if (!modal.classList.contains("hidden")) refreshPresets();
   });
 }

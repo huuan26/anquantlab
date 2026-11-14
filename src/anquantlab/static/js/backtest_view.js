@@ -5,6 +5,8 @@
 
 import { runBacktest } from "./api.js";
 import { syncVaultAndLedgerUi } from "./forensics_hub.js";
+import { renderPlainVerdict } from "./guide_hub.js";
+import { getLang, t } from "./i18n.js";
 import { TVEquityLabChart } from "./tv_equity_chart.js";
 
 const FRICTION_PRESETS = {
@@ -89,6 +91,8 @@ export class BacktestLabController {
 
     this.holdoutLocked = true;
     this.chartMode = "equity"; // "equity" | "candles"
+    this.lastResponse = null;
+    this.lastParams = null;
     this.inFlight = false;
     this.queued = false;
     this.debounceTimer = null;
@@ -126,13 +130,14 @@ export class BacktestLabController {
     const vol = Number(document.getElementById("bt-vol-slider").value);
     const buf = Number(document.getElementById("bt-buf-slider").value);
     const lag = Number(document.getElementById("bt-lag-slider").value);
+    const vi = getLang() === "vi";
 
     document.getElementById("bt-fee-val").textContent = `${fee.toFixed(1)} bps`;
     document.getElementById("bt-slip-val").textContent = `${slip.toFixed(1)} bps`;
-    document.getElementById("bt-vol-val").textContent = vol > 0 ? `${vol}%` : "OFF";
+    document.getElementById("bt-vol-val").textContent = vol > 0 ? `${vol}%` : vi ? "TẮT" : "OFF";
     document.getElementById("bt-buf-val").textContent = buf.toFixed(3);
     const lagEl = document.getElementById("bt-lag-val");
-    lagEl.textContent = lag === 0 ? "0 (LOOKAHEAD!)" : `${lag} bar`;
+    lagEl.textContent = lag === 0 ? t("bt.lag_lookahead") : t("bt.lag_bar", { n: lag });
     lagEl.style.color = lag === 0 ? "var(--tv-down)" : "var(--tv-text-primary)";
   }
 
@@ -187,6 +192,15 @@ export class BacktestLabController {
     const btnCd = document.getElementById("btn-view-candles");
     btnEq.addEventListener("click", () => this._setChartMode("equity"));
     btnCd.addEventListener("click", () => this._setChartMode("candles"));
+
+    window.addEventListener("aql:langchange", () => {
+      this._syncSliderLabels();
+      if (this.lastResponse && this.lastParams) {
+        this._renderResponse(this.lastResponse, this.lastParams);
+      } else {
+        this.eqChart.render();
+      }
+    });
 
     this._syncSliderLabels();
   }
@@ -244,12 +258,19 @@ export class BacktestLabController {
     const grossPct = ((pt.gross_eq - 1) * 100).toFixed(2);
     const benchPct = ((pt.bench_eq - 1) * 100).toFixed(2);
     const ddPct = (pt.dd * 100).toFixed(2);
-    el.textContent = `${String(pt.t).slice(0, 10)} | Net ${netPct}% | Gross ${grossPct}% | DD ${ddPct}%`;
-    el.title = `Time ${String(pt.t).slice(0, 16)} | Bench ${benchPct}%`;
+    const vi = getLang() === "vi";
+    el.textContent = vi
+      ? `${String(pt.t).slice(0, 10)} | Ròng ${netPct}% | Gộp ${grossPct}% | Sụt ${ddPct}%`
+      : `${String(pt.t).slice(0, 10)} | Net ${netPct}% | Gross ${grossPct}% | DD ${ddPct}%`;
+    el.title = vi
+      ? `Thời điểm ${String(pt.t).slice(0, 16)} | Chuẩn ${benchPct}%`
+      : `Time ${String(pt.t).slice(0, 16)} | Bench ${benchPct}%`;
     el.style.color = pt.net_eq >= 1.0 ? "var(--tv-up)" : "var(--tv-down)";
   }
 
   _renderResponse(res, params) {
+    this.lastResponse = res;
+    this.lastParams = params;
     if (this.setSymbolDropdown) {
       this.setSymbolDropdown(res.available_symbols, res.active_symbol);
     }
@@ -263,11 +284,13 @@ export class BacktestLabController {
 
     const m = res.metrics;
     syncVaultAndLedgerUi(res, `${(m.live_dsr * 100).toFixed(1)}%`);
+    renderPlainVerdict("backtest", res, params);
 
     // Sidebar latency & effective spread footer
     const hitTag = res.position_cache_hit ? "POS" : res.signal_cache_hit ? "SIG" : "COLD";
+    const slipWord = getLang() === "vi" ? "Trượt" : "Slip";
     document.getElementById("bt-rail-latency").textContent =
-      `${res.elapsed_ms.toFixed(1)}ms | ${hitTag} | Slip ${res.effective_slippage_bps_mean.toFixed(1)}bp`;
+      `${res.elapsed_ms.toFixed(1)}ms | ${hitTag} | ${slipWord} ${res.effective_slippage_bps_mean.toFixed(1)}bp`;
 
     // Bottom Drawer Subpanel: Performance & Tail Risk (12 KPI cells)
     this._renderSummaryCards(m, res);
@@ -278,23 +301,39 @@ export class BacktestLabController {
   _renderSummaryCards(m, res) {
     const grid = document.getElementById("bt-kpi-grid");
     grid.textContent = "";
+    const vi = getLang() === "vi";
     const oosLabel =
       m.oos_sharpe_ratio !== null && m.oos_sharpe_ratio !== undefined
         ? `OOS SR: ${fmtDec(m.oos_sharpe_ratio, 2)}`
-        : "OOS Vault Sealed";
+        : vi
+          ? "Kho OOS Đang Khóa"
+          : "OOS Vault Sealed";
 
-    const cards = [
-      ["Net Return", fmtPct(m.total_return), `Gross: ${fmtPct(m.gross_total_return)}`, m.total_return >= 0 ? "up" : "down"],
-      ["Net Sharpe", fmtDec(m.sharpe_ratio, 2), `Gross SR: ${fmtDec(m.gross_sharpe_ratio, 2)} | ${oosLabel}`, m.sharpe_ratio >= 1 ? "up" : m.sharpe_ratio < 0 ? "down" : ""],
-      ["Live Session DSR", `${(m.live_dsr * 100).toFixed(1)}%`, `PSR: ${(m.psr * 100).toFixed(1)}% (N_eff ${res.trial_ledger.effective_n_trials.toFixed(1)})`, m.live_dsr >= 0.8 ? "up" : "warn"],
-      ["Max Drawdown", fmtPct(m.max_drawdown), `Calmar: ${fmtDec(m.calmar_ratio, 2)}`, "down"],
-      ["Sortino & Profit Factor", fmtDec(m.sortino_ratio, 2), `PF: ${fmtDec(m.profit_factor, 2)} | Win: ${(m.win_rate * 100).toFixed(1)}%`, ""],
-      ["Breakeven Cost (1-Way)", `${fmtDec(m.breakeven_bps, 1)} bps`, `Turnover: ${fmtDec(m.total_turnover, 1)}x`, m.breakeven_bps > 15 ? "up" : "warn"],
-      ["VaR (95%, 1-Bar)", fmtPct(m.var_95), `Ann Vol: ${fmtPct(m.annualized_volatility)}`, ""],
-      ["CVaR / Expected Shortfall", fmtPct(m.cvar_95), "5% Left Tail Mean", "down"],
-      ["Omega & Tail Ratio", fmtDec(m.omega_ratio, 2), `Tail Ratio (95/5): ${fmtDec(m.tail_ratio, 2)}`, ""],
-      ["Round-Trip Trades", String(m.n_round_trips), `Hold: ${fmtDec(m.avg_holding_bars, 1)} bars | MAE ${fmtPct(m.avg_mae)} / MFE ${fmtPct(m.avg_mfe)}`, ""],
-    ];
+    const cards = vi
+      ? [
+          ["Lãi Ròng", fmtPct(m.total_return), `Gộp: ${fmtPct(m.gross_total_return)}`, m.total_return >= 0 ? "up" : "down"],
+          ["Sharpe Ròng", fmtDec(m.sharpe_ratio, 2), `Sharpe Gộp: ${fmtDec(m.gross_sharpe_ratio, 2)} | ${oosLabel}`, m.sharpe_ratio >= 1 ? "up" : m.sharpe_ratio < 0 ? "down" : ""],
+          ["DSR Phiên (Chống Thử Nhiều)", `${(m.live_dsr * 100).toFixed(1)}%`, `PSR: ${(m.psr * 100).toFixed(1)}% (N_eff ${res.trial_ledger.effective_n_trials.toFixed(1)})`, m.live_dsr >= 0.8 ? "up" : "warn"],
+          ["Sụt giảm Tối đa", fmtPct(m.max_drawdown), `Calmar: ${fmtDec(m.calmar_ratio, 2)}`, "down"],
+          ["Sortino & Hệ số Lãi", fmtDec(m.sortino_ratio, 2), `PF: ${fmtDec(m.profit_factor, 2)} | Thắng: ${(m.win_rate * 100).toFixed(1)}%`, ""],
+          ["Phí Hòa vốn (1 chiều)", `${fmtDec(m.breakeven_bps, 1)} bps`, `Đảo vốn: ${fmtDec(m.total_turnover, 1)}x`, m.breakeven_bps > 15 ? "up" : "warn"],
+          ["Rủi ro VaR (95%, 1-Nến)", fmtPct(m.var_95), `Biến động Năm: ${fmtPct(m.annualized_volatility)}`, ""],
+          ["CVaR / Tổn thất Đuôi", fmtPct(m.cvar_95), "Trung bình 5% Đuôi Xấu nhất", "down"],
+          ["Omega & Tỷ lệ Đuôi", fmtDec(m.omega_ratio, 2), `Tỷ lệ Đuôi (95/5): ${fmtDec(m.tail_ratio, 2)}`, ""],
+          ["Số Lệnh Khép vòng", String(m.n_round_trips), `Giữ TB: ${fmtDec(m.avg_holding_bars, 1)} nến | MAE ${fmtPct(m.avg_mae)} / MFE ${fmtPct(m.avg_mfe)}`, ""],
+        ]
+      : [
+          ["Net Return", fmtPct(m.total_return), `Gross: ${fmtPct(m.gross_total_return)}`, m.total_return >= 0 ? "up" : "down"],
+          ["Net Sharpe", fmtDec(m.sharpe_ratio, 2), `Gross SR: ${fmtDec(m.gross_sharpe_ratio, 2)} | ${oosLabel}`, m.sharpe_ratio >= 1 ? "up" : m.sharpe_ratio < 0 ? "down" : ""],
+          ["Live Session DSR", `${(m.live_dsr * 100).toFixed(1)}%`, `PSR: ${(m.psr * 100).toFixed(1)}% (N_eff ${res.trial_ledger.effective_n_trials.toFixed(1)})`, m.live_dsr >= 0.8 ? "up" : "warn"],
+          ["Max Drawdown", fmtPct(m.max_drawdown), `Calmar: ${fmtDec(m.calmar_ratio, 2)}`, "down"],
+          ["Sortino & Profit Factor", fmtDec(m.sortino_ratio, 2), `PF: ${fmtDec(m.profit_factor, 2)} | Win: ${(m.win_rate * 100).toFixed(1)}%`, ""],
+          ["Breakeven Cost (1-Way)", `${fmtDec(m.breakeven_bps, 1)} bps`, `Turnover: ${fmtDec(m.total_turnover, 1)}x`, m.breakeven_bps > 15 ? "up" : "warn"],
+          ["VaR (95%, 1-Bar)", fmtPct(m.var_95), `Ann Vol: ${fmtPct(m.annualized_volatility)}`, ""],
+          ["CVaR / Expected Shortfall", fmtPct(m.cvar_95), "5% Left Tail Mean", "down"],
+          ["Omega & Tail Ratio", fmtDec(m.omega_ratio, 2), `Tail Ratio (95/5): ${fmtDec(m.tail_ratio, 2)}`, ""],
+          ["Round-Trip Trades", String(m.n_round_trips), `Hold: ${fmtDec(m.avg_holding_bars, 1)} bars | MAE ${fmtPct(m.avg_mae)} / MFE ${fmtPct(m.avg_mfe)}`, ""],
+        ];
 
     for (const [lbl, val, sub, tone] of cards) {
       const cell = document.createElement("div");
@@ -324,7 +363,9 @@ export class BacktestLabController {
       const td = document.createElement("td");
       td.colSpan = 12;
       td.className = "tv-muted-meta";
-      td.textContent = "No closed round-trip trades in active evaluation window.";
+      td.textContent = getLang() === "vi"
+        ? "Chưa có lệnh khép vòng nào trong giai đoạn đánh giá hiện tại."
+        : "No closed round-trip trades in active evaluation window.";
       tr.appendChild(td);
       tbody.appendChild(tr);
       return;

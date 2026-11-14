@@ -5,6 +5,7 @@
  */
 
 import { drawQuadrantHeader, fitCanvasText, readChartPalette, renderFourPanels, snapPx as snap } from "./canvas_utils.js";
+import { localizeTag, t } from "./i18n.js";
 
 function heatCellFill(sr, maxAbs) {
   const norm = Math.max(-1, Math.min(1, sr / Math.max(0.4, maxAbs)));
@@ -73,7 +74,7 @@ export class TVCrashTestChart {
       ctx.fillStyle = pal.muted;
       ctx.font = "12px Inter, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Running 2D parameter sweep & Romano-Wolf falsification...", w / 2, h / 2);
+      ctx.fillText(t("canvas.wait_ct"), w / 2, h / 2);
       ctx.restore();
       return;
     }
@@ -101,8 +102,8 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      `2D Sharpe Surface (${hm.y_name} x ${hm.x_name})`,
-      `Plateau ${hm.neighbor_plateau_ratio.toFixed(2)}`,
+      t("canvas.heatmap", { y: hm.y_name, x: hm.x_name }),
+      t("canvas.plateau", { v: hm.neighbor_plateau_ratio.toFixed(2) }),
       pal
     );
 
@@ -173,7 +174,7 @@ export class TVCrashTestChart {
       x,
       y,
       splitW,
-      "Sharpe Haircut",
+      t("canvas.haircut"),
       "",
       pal
     );
@@ -182,7 +183,7 @@ export class TVCrashTestChart {
       x + splitW,
       y,
       w - splitW,
-      "PBO Logits",
+      t("canvas.pbo"),
       `PBO ${(pbo.pbo * 100).toFixed(1)}%`,
       pal
     );
@@ -223,7 +224,7 @@ export class TVCrashTestChart {
         ctx.fillStyle = pal.sub;
         ctx.textAlign = "left";
         const rawStage = b.stage.replace(/^\d+\.\s*/, "");
-        ctx.fillText(fitCanvasText(ctx, rawStage, labelW - 6), hL, ry + 3.5);
+        ctx.fillText(fitCanvasText(ctx, localizeTag("haircut", rawStage), labelW - 6), hL, ry + 3.5);
 
         const targetX = bL + ((b.sharpe_equiv - minV) / span) * bW;
         const bh = Math.max(6, Math.min(12, rowH - 8));
@@ -303,7 +304,7 @@ export class TVCrashTestChart {
       ctx.font = "10.5px Inter, sans-serif";
       ctx.fillStyle = pal.muted;
       ctx.textAlign = "center";
-      ctx.fillText("Flat / zero-variance grid", pL + pW / 2, topY + plotH / 2);
+      ctx.fillText(t("canvas.flat_grid"), pL + pW / 2, topY + plotH / 2);
     }
   }
 
@@ -314,7 +315,7 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      `Bootstrap Fan (${bs.mean_block_bars}b block)`,
+      t("canvas.boot_fan", { b: bs.mean_block_bars }),
       `Null95 ${bs.null_sharpe_95.toFixed(2)}`,
       pal
     );
@@ -331,7 +332,7 @@ export class TVCrashTestChart {
       ctx.font = "11px Inter, sans-serif";
       ctx.fillStyle = pal.muted;
       ctx.textAlign = "center";
-      ctx.fillText("Insufficient bars for stationary bootstrap fan", x + w / 2, y + h / 2);
+      ctx.fillText(t("canvas.insuff_boot"), x + w / 2, y + h / 2);
       return;
     }
 
@@ -407,7 +408,7 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      "OLS-CUSUM Break Bridge",
+      t("canvas.cusum"),
       `Q=${cs.statistic.toFixed(2)} (p=${cs.p_value.toFixed(2)})`,
       pal
     );
@@ -471,8 +472,8 @@ export class TVCrashTestChart {
       x,
       y,
       w,
-      "Romano-Wolf Funnel",
-      `Survived ${last.survivors}/${last.total}`,
+      t("canvas.funnel"),
+      t("canvas.survived", { s: last.survivors, t: last.total }),
       pal
     );
 
@@ -494,7 +495,7 @@ export class TVCrashTestChart {
       ctx.font = "10px Inter, sans-serif";
       ctx.fillStyle = it.survivors > 0 ? pal.text : pal.muted;
       ctx.textAlign = "left";
-      ctx.fillText(fitCanvasText(ctx, it.gate_label, labelW - 8), padL, ry + 3.5);
+      ctx.fillText(fitCanvasText(ctx, localizeTag("gate", it.gate_label), labelW - 8), padL, ry + 3.5);
 
       const frac = Math.max(0, Math.min(1, it.survival_pct / 100.0));
       const bh = Math.max(6, Math.min(12, rowH - 7));

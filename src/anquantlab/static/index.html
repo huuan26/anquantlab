@@ -32,64 +32,72 @@
           <option value="">--</option>
         </select>
 
-        <label for="dataset-upload-input" class="tv-tool-btn" title="Import local Parquet or CSV into memory">
+        <label for="dataset-upload-input" class="tv-tool-btn" data-i18n-title="nav.import_title" title="Import local Parquet or CSV into memory">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 16V4m0 0l-4 4m4-4l4 4" />
             <path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2" />
           </svg>
-          <span>Import</span>
+          <span data-i18n="nav.import">Import</span>
         </label>
         <input id="dataset-upload-input" type="file" accept=".parquet,.csv" class="sr-only" />
 
-        <button id="btn-open-public-data" type="button" class="tv-tool-btn" aria-haspopup="dialog" aria-controls="public-data-modal" title="Zero-Key Legal Public Market Data Hub (Binance Orderflow &amp; Stooq Sector ETFs)">
+        <button id="btn-open-public-data" type="button" class="tv-tool-btn" aria-haspopup="dialog" aria-controls="public-data-modal" data-i18n-title="nav.public_title" title="Zero-Key Legal Public Market Data Hub (Binance Orderflow &amp; Stooq Sector ETFs)">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="9" />
             <path d="M3 12h18" />
             <path d="M12 3a14.5 14.5 0 010 18 14.5 14.5 0 010-18z" />
           </svg>
-          <span>Public</span>
+          <span data-i18n="nav.public">Public</span>
         </button>
 
         <span class="tv-sep" aria-hidden="true"></span>
 
         <!-- TradingView fx Indicators Trigger -->
-        <button id="btn-open-fx" type="button" class="tv-tool-btn tv-fx-btn" aria-haspopup="dialog" aria-controls="fx-modal" title="Open causal formula function catalog (Ctrl+K)">
+        <button id="btn-open-fx" type="button" class="tv-tool-btn tv-fx-btn" aria-haspopup="dialog" aria-controls="fx-modal" data-i18n-title="nav.indicators_title" title="Open causal formula function catalog (Ctrl+K)">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M9 19c-2 0-3-1-3-3V8a4 4 0 014-4h1" />
             <path d="M5 11h6" />
             <path d="M14 10l6 8m0-8l-6 8" />
           </svg>
-          <span>Indicators</span>
+          <span data-i18n="nav.indicators">Indicators</span>
           <span id="catalog-count-badge" class="sr-only">223</span>
         </button>
       </div>
 
       <!-- 3-Tab Research Mode Switcher -->
       <nav class="tv-mode-tabs" role="tablist" aria-label="Workbench Mode">
-        <button id="tab-btn-backtest" type="button" role="tab" aria-selected="true" aria-controls="panel-backtest" class="tv-mode-tab active" data-tab="backtest">
+        <button id="tab-btn-backtest" type="button" role="tab" aria-selected="true" aria-controls="panel-backtest" class="tv-mode-tab active" data-tab="backtest" data-i18n="nav.tab_backtest">
           1. Backtest
         </button>
-        <button id="tab-btn-xray" type="button" role="tab" aria-selected="false" aria-controls="panel-xray" class="tv-mode-tab" data-tab="xray">
+        <button id="tab-btn-xray" type="button" role="tab" aria-selected="false" aria-controls="panel-xray" class="tv-mode-tab" data-tab="xray" data-i18n="nav.tab_xray" data-i18n-html="true">
           2. <span class="tv-hide-phone">Factor </span>X-Ray
         </button>
-        <button id="tab-btn-crashtest" type="button" role="tab" aria-selected="false" aria-controls="panel-crashtest" class="tv-mode-tab" data-tab="crashtest">
+        <button id="tab-btn-crashtest" type="button" role="tab" aria-selected="false" aria-controls="panel-crashtest" class="tv-mode-tab" data-tab="crashtest" data-i18n="nav.tab_crashtest">
           3. Crash-Test
         </button>
       </nav>
 
       <div class="tv-topbar-right">
-        <button id="btn-toggle-rail" type="button" class="tv-tool-btn tv-mobile-only" aria-expanded="false" title="Show or hide strategy parameter controls">
+        <button id="btn-toggle-rail" type="button" class="tv-tool-btn tv-mobile-only" aria-expanded="false" data-i18n-title="nav.params_title" title="Show or hide strategy parameter controls">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 6h16M4 12h10M4 18h14" />
           </svg>
-          <span>Params</span>
+          <span data-i18n="nav.params">Params</span>
         </button>
-        <button id="btn-open-export" type="button" class="tv-tool-btn tv-export-btn" aria-haspopup="dialog" aria-controls="export-modal" title="1-Click Export Production Polars .py, HTML Tearsheet &amp; SHA-256 Alpha Passport">
+        <button id="btn-open-guide" type="button" class="tv-tool-btn tv-guide-btn" aria-haspopup="dialog" aria-controls="guide-modal" data-i18n-title="nav.guide_title" title="Open 30-second overview, 1-click case study demos &amp; real data download guide">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M9.5 9a2.5 2.5 0 014.8.8c0 1.6-2.3 2-2.3 3.4" />
+            <circle cx="12" cy="16.8" r="0.6" />
+          </svg>
+          <span data-i18n="nav.guide">Guide</span>
+        </button>
+        <button id="btn-open-export" type="button" class="tv-tool-btn tv-export-btn" aria-haspopup="dialog" aria-controls="export-modal" data-i18n-title="nav.export_title" title="1-Click Export Production Polars .py, HTML Tearsheet &amp; SHA-256 Alpha Passport">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 3v12m0 0l-4-4m4 4l4-4" />
             <path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2" />
           </svg>
-          <span>Export</span>
+          <span data-i18n="nav.export">Export</span>
         </button>
 
         <button id="btn-holdout-vault" type="button" class="tv-tool-btn tv-vault-sealed num" title="Toggle 25% Out-of-Sample Holdout Vault (peeks are logged in Trial Ledger)">
@@ -105,11 +113,15 @@
           <span id="engine-status-text" class="sr-only">polars-anta ...</span>
         </div>
 
-        <button id="btn-density-toggle" type="button" class="tv-tool-btn num" aria-label="Toggle font size scale" title="Switch font size: 12px (TV Compact) / 13.5px (Comfort)">
+        <button id="btn-lang-toggle" type="button" class="tv-tool-btn tv-lang-btn num" aria-label="Toggle language" data-i18n-title="nav.lang_title" title="Switch interface and exported HTML Tearsheet language (English / Vietnamese)">
+          <span id="lang-label">EN</span>
+        </button>
+
+        <button id="btn-density-toggle" type="button" class="tv-tool-btn num" aria-label="Toggle font size scale" data-i18n-title="nav.density_title" title="Switch font size: 12px (TV Compact) / 13.5px (Comfort)">
           <span id="density-label">12px</span>
         </button>
 
-        <button id="btn-theme-toggle" type="button" class="tv-icon-btn" aria-label="Switch color theme" title="Toggle TradingView Dark / Light Theme">
+        <button id="btn-theme-toggle" type="button" class="tv-icon-btn" aria-label="Switch color theme" data-i18n-title="nav.theme_title" title="Toggle TradingView Dark / Light Theme">
           <svg id="icon-sun" class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="4" />
             <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41" />
@@ -127,29 +139,29 @@
       <section id="panel-backtest" class="tv-bt-workspace" role="tabpanel" aria-labelledby="tab-btn-backtest">
         <aside class="tv-bt-rail" aria-label="Execution Friction and Portfolio Controls">
           <div class="tv-rail-group">
-            <label for="bt-preset-select" class="tv-rail-lbl">Market Preset</label>
-            <select id="bt-preset-select" class="tv-select tv-rail-select">
-              <option value="standard" selected>Global Standard (5+5 bps)</option>
-              <option value="vn_cash_limit">VN Cash Equity (CS + Limit-Lock)</option>
-              <option value="vn30f1m_intraday">VN30F1M Futures (EOD Flatten)</option>
-              <option value="crypto_perp_taker">Crypto Taker Flow (CS Spread)</option>
-              <option value="custom">Custom Friction</option>
+            <label for="bt-preset-select" class="tv-rail-lbl" data-i18n="bt.preset_lbl" data-i18n-title="bt.preset_title">Market Preset</label>
+            <select id="bt-preset-select" class="tv-select tv-rail-select" data-i18n-title="bt.preset_title">
+              <option value="standard" selected data-i18n="bt.opt.standard">Global Standard (5+5 bps)</option>
+              <option value="vn_cash_limit" data-i18n="bt.opt.vn_cash">VN Cash Equity (CS + Limit-Lock)</option>
+              <option value="vn30f1m_intraday" data-i18n="bt.opt.vn30f">VN30F1M Futures (EOD Flatten)</option>
+              <option value="crypto_perp_taker" data-i18n="bt.opt.crypto">Crypto Taker Flow (CS Spread)</option>
+              <option value="custom" data-i18n="bt.opt.custom">Custom Friction</option>
             </select>
           </div>
 
           <div class="tv-rail-row-2">
             <div>
-              <label for="bt-weight-select" class="tv-rail-lbl">Weighting</label>
-              <select id="bt-weight-select" class="tv-select tv-rail-select">
-                <option value="dollar_neutral" selected>Dollar Neutral</option>
-                <option value="long_only">Long Only</option>
-                <option value="equal_weight">Equal Weight</option>
-                <option value="raw">Raw Signal</option>
+              <label for="bt-weight-select" class="tv-rail-lbl" data-i18n="bt.weight_lbl" data-i18n-title="bt.weight_title">Weighting</label>
+              <select id="bt-weight-select" class="tv-select tv-rail-select" data-i18n-title="bt.weight_title">
+                <option value="dollar_neutral" selected data-i18n="bt.opt.dollar_neutral">Dollar Neutral</option>
+                <option value="long_only" data-i18n="bt.opt.long_only">Long Only</option>
+                <option value="equal_weight" data-i18n="bt.opt.equal_weight">Equal Weight</option>
+                <option value="raw" data-i18n="bt.opt.raw">Raw Signal</option>
               </select>
             </div>
             <div>
-              <label for="bt-exec-select" class="tv-rail-lbl">Exec Price</label>
-              <select id="bt-exec-select" class="tv-select tv-rail-select">
+              <label for="bt-exec-select" class="tv-rail-lbl" data-i18n="bt.exec_lbl" data-i18n-title="bt.exec_title">Exec Price</label>
+              <select id="bt-exec-select" class="tv-select tv-rail-select" data-i18n-title="bt.exec_title">
                 <option value="close" selected>Close</option>
                 <option value="open">Open</option>
                 <option value="twap">TWAP</option>
@@ -159,62 +171,62 @@
           </div>
 
           <div class="tv-rail-group">
-            <label for="bt-slip-mode" class="tv-rail-lbl">Slippage Model</label>
-            <select id="bt-slip-mode" class="tv-select tv-rail-select">
-              <option value="fixed" selected>Fixed Basis Points</option>
-              <option value="corwin_schultz">Corwin-Schultz OHLC Half-Spread</option>
-              <option value="amihud">Amihud Illiquidity Impact</option>
+            <label for="bt-slip-mode" class="tv-rail-lbl" data-i18n="bt.slip_lbl" data-i18n-title="bt.slip_title">Slippage Model</label>
+            <select id="bt-slip-mode" class="tv-select tv-rail-select" data-i18n-title="bt.slip_title">
+              <option value="fixed" selected data-i18n="bt.opt.fixed">Fixed Basis Points</option>
+              <option value="corwin_schultz" data-i18n="bt.opt.cs">Corwin-Schultz OHLC Half-Spread</option>
+              <option value="amihud" data-i18n="bt.opt.amihud">Amihud Illiquidity Impact</option>
             </select>
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="bt.fee_title">
             <div class="tv-slider-hdr">
-              <label for="bt-fee-slider">Commission</label>
+              <label for="bt-fee-slider" data-i18n="bt.fee_lbl">Commission</label>
               <output id="bt-fee-val" class="num">5.0 bps</output>
             </div>
             <input id="bt-fee-slider" type="range" min="0" max="50" step="0.5" value="5" class="tv-range" />
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="bt.slip_s_title">
             <div class="tv-slider-hdr">
-              <label for="bt-slip-slider">Slippage</label>
+              <label for="bt-slip-slider" data-i18n="bt.slip_s_lbl">Slippage</label>
               <output id="bt-slip-val" class="num">5.0 bps</output>
             </div>
             <input id="bt-slip-slider" type="range" min="0" max="80" step="0.5" value="5" class="tv-range" />
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="bt.vol_title">
             <div class="tv-slider-hdr">
-              <label for="bt-vol-slider">Vol Target</label>
+              <label for="bt-vol-slider" data-i18n="bt.vol_lbl">Vol Target</label>
               <output id="bt-vol-val" class="num">OFF</output>
             </div>
             <input id="bt-vol-slider" type="range" min="0" max="45" step="1" value="0" class="tv-range" />
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="bt.buf_title">
             <div class="tv-slider-hdr">
-              <label for="bt-buf-slider" title="No-Trade Hysteresis Buffer">No-Trade Buffer</label>
+              <label for="bt-buf-slider" data-i18n="bt.buf_lbl" title="No-Trade Hysteresis Buffer">No-Trade Buffer</label>
               <output id="bt-buf-val" class="num">0.000</output>
             </div>
             <input id="bt-buf-slider" type="range" min="0" max="0.20" step="0.005" value="0" class="tv-range" />
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="bt.lag_title">
             <div class="tv-slider-hdr">
-              <label for="bt-lag-slider">Signal Lag</label>
+              <label for="bt-lag-slider" data-i18n="bt.lag_lbl">Signal Lag</label>
               <output id="bt-lag-val" class="num">1 bar</output>
             </div>
             <input id="bt-lag-slider" type="range" min="0" max="3" step="1" value="1" class="tv-range" />
           </div>
 
           <div class="tv-rail-checks">
-            <label class="tv-check-lbl" title="Skip fills on Limit-Lock or zero-volume bars">
+            <label class="tv-check-lbl" data-i18n-title="bt.limit_lock_title" title="Skip fills on Limit-Lock or zero-volume bars">
               <input id="bt-limit-lock" type="checkbox" />
-              <span>Skip Limit-Lock / 0-Vol</span>
+              <span data-i18n="bt.limit_lock">Skip Limit-Lock / 0-Vol</span>
             </label>
-            <label class="tv-check-lbl" title="Flatten positions before EOD session close">
+            <label class="tv-check-lbl" data-i18n-title="bt.eod_flat_title" title="Flatten positions before EOD session close">
               <input id="bt-intraday-flat" type="checkbox" />
-              <span>EOD Flatten</span>
+              <span data-i18n="bt.eod_flat">EOD Flatten</span>
             </label>
           </div>
 
@@ -225,7 +237,7 @@
           <div class="tv-bt-topbar">
             <div class="tv-chart-legend" aria-live="polite">
               <div id="legend-eq-row" class="tv-legend-row">
-                <span class="tv-legend-sym">Portfolio</span>
+                <span class="tv-legend-sym" data-i18n="bt.portfolio">Portfolio</span>
                 <span id="legend-dataset" class="tv-legend-meta">Synthetic Panel</span>
                 <span id="legend-eq-vals" class="tv-legend-ohlc num">Net -- | Gross -- | Bench -- | DD --</span>
               </div>
@@ -234,7 +246,7 @@
                 <span id="legend-ohlc" class="tv-legend-ohlc num">O -- H -- L -- C --</span>
               </div>
               <div class="tv-legend-row">
-                <span class="tv-legend-ind-tag">Signal</span>
+                <span class="tv-legend-ind-tag" data-i18n="bt.signal">Signal</span>
                 <span id="legend-formula" class="tv-legend-formula mono">cs_rank(rsi(close, 14))</span>
                 <span id="legend-sig-val" class="tv-legend-sig num">--</span>
                 <span id="cache-badge" class="tv-micro-tag num">INIT</span>
@@ -246,11 +258,13 @@
 
             <div class="tv-chart-mode-bar">
               <div class="tv-seg-group">
-                <button id="btn-view-equity" type="button" class="tv-seg-btn active">Equity &amp; Cost</button>
-                <button id="btn-view-candles" type="button" class="tv-seg-btn">Candles</button>
+                <button id="btn-view-equity" type="button" class="tv-seg-btn active" data-i18n="bt.view_equity">Equity &amp; Cost</button>
+                <button id="btn-view-candles" type="button" class="tv-seg-btn" data-i18n="bt.view_candles">Candles</button>
               </div>
             </div>
           </div>
+
+          <div id="bt-plain-verdict" class="tv-plain-verdict" aria-live="polite"></div>
 
           <div id="bt-equity-wrap" class="tv-canvas-wrap">
             <canvas id="tv-bt-canvas" aria-label="Portfolio Equity, Drawdown, Breakeven Cost Curve and MAE/MFE Scatter"></canvas>
@@ -265,35 +279,35 @@
       <section id="panel-xray" class="tv-bt-workspace hidden" role="tabpanel" aria-labelledby="tab-btn-xray">
         <aside class="tv-bt-rail" aria-label="Alpha Pipeline X-Ray Conditioning Controls">
           <div class="tv-rail-group">
-            <label for="xr-winsor-method" class="tv-rail-lbl">Outlier Clipping</label>
-            <select id="xr-winsor-method" class="tv-select tv-rail-select">
-              <option value="quantile" selected>Quantile Clip (cs_winsorize)</option>
-              <option value="mad">Median Abs Dev (MAD)</option>
-              <option value="zscore">Z-Score Cap</option>
+            <label for="xr-winsor-method" class="tv-rail-lbl" data-i18n="xr.clip_lbl" data-i18n-title="xr.clip_title">Outlier Clipping</label>
+            <select id="xr-winsor-method" class="tv-select tv-rail-select" data-i18n-title="xr.clip_title">
+              <option value="quantile" selected data-i18n="xr.opt.quantile">Quantile Clip (cs_winsorize)</option>
+              <option value="mad" data-i18n="xr.opt.mad">Median Abs Dev (MAD)</option>
+              <option value="zscore" data-i18n="xr.opt.zscore">Z-Score Cap</option>
             </select>
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="xr.clip_title">
             <div class="tv-slider-hdr">
-              <label for="xr-winsor-slider">Tail Threshold</label>
+              <label for="xr-winsor-slider" data-i18n="xr.tail_lbl">Tail Threshold</label>
               <output id="xr-winsor-val" class="num">2.0% / 98.0%</output>
             </div>
             <input id="xr-winsor-slider" type="range" min="0.5" max="10" step="0.5" value="2" class="tv-range" />
           </div>
 
           <div class="tv-rail-group">
-            <label for="xr-neutral-mode" class="tv-rail-lbl">Neutralization</label>
-            <select id="xr-neutral-mode" class="tv-select tv-rail-select">
-              <option value="auto" selected>Auto (Sector FWL / CS Z-Score)</option>
-              <option value="demean">Cross-Sectional Z-Score Only</option>
-              <option value="none">Bypass Stage 3</option>
+            <label for="xr-neutral-mode" class="tv-rail-lbl" data-i18n="xr.neutral_lbl" data-i18n-title="xr.neutral_title">Neutralization</label>
+            <select id="xr-neutral-mode" class="tv-select tv-rail-select" data-i18n-title="xr.neutral_title">
+              <option value="auto" selected data-i18n="xr.opt.auto">Auto (Sector FWL / CS Z-Score)</option>
+              <option value="demean" data-i18n="xr.opt.demean">Cross-Sectional Z-Score Only</option>
+              <option value="none" data-i18n="xr.opt.none">Bypass Stage 3</option>
             </select>
           </div>
 
           <div class="tv-rail-row-2">
             <div>
-              <label for="xr-ic-horizon" class="tv-rail-lbl">IC Horizon</label>
-              <select id="xr-ic-horizon" class="tv-select tv-rail-select num">
+              <label for="xr-ic-horizon" class="tv-rail-lbl" data-i18n="xr.horizon_lbl" data-i18n-title="xr.horizon_title">IC Horizon</label>
+              <select id="xr-ic-horizon" class="tv-select tv-rail-select num" data-i18n-title="xr.horizon_title">
                 <option value="1" selected>1 bar</option>
                 <option value="2">2 bars</option>
                 <option value="5">5 bars</option>
@@ -302,16 +316,16 @@
               </select>
             </div>
             <div>
-              <label for="xr-ic-method" class="tv-rail-lbl">IC Metric</label>
-              <select id="xr-ic-method" class="tv-select tv-rail-select">
-                <option value="spearman" selected>Rank IC</option>
-                <option value="pearson">Linear IC</option>
+              <label for="xr-ic-method" class="tv-rail-lbl" data-i18n="xr.metric_lbl" data-i18n-title="xr.metric_title">IC Metric</label>
+              <select id="xr-ic-method" class="tv-select tv-rail-select" data-i18n-title="xr.metric_title">
+                <option value="spearman" selected data-i18n="xr.opt.spearman">Rank IC</option>
+                <option value="pearson" data-i18n="xr.opt.pearson">Linear IC</option>
               </select>
             </div>
           </div>
 
           <div class="tv-rail-checks">
-            <span class="tv-rail-lbl">5-Factor Orthogonalize</span>
+            <span class="tv-rail-lbl" data-i18n="xr.ortho_lbl">5-Factor Orthogonalize</span>
             <label class="tv-check-lbl">
               <input type="checkbox" class="xr-factor-chk" value="mom_20" checked />
               <span>Momentum (20b)</span>
@@ -334,8 +348,8 @@
             </label>
           </div>
 
-          <button id="btn-xr-promote" type="button" class="tv-btn-primary tv-rail-action" title="Copy active conditioned stage expression into Pine / Formula Editor">
-            <span>Promote to Editor</span>
+          <button id="btn-xr-promote" type="button" class="tv-btn-primary tv-rail-action" data-i18n-title="xr.promote_title" title="Copy active conditioned stage expression into Pine / Formula Editor">
+            <span data-i18n="xr.promote">Promote to Editor</span>
           </button>
 
           <div id="xr-rail-latency" class="tv-rail-footer num">-- ms</div>
@@ -346,17 +360,19 @@
 
           <div class="tv-xr-toolbar">
             <div class="tv-xr-formula-bar">
-              <span class="tv-legend-ind-tag">Expr</span>
+              <span class="tv-legend-ind-tag" data-i18n="xr.expr">Expr</span>
               <code id="xr-stage-formula" class="tv-xr-code mono">cs_rank(rsi(close, 14))</code>
             </div>
             <div class="tv-xr-toolbar-right">
               <span id="xr-verdict-banner" class="tv-xr-verdict num">Spanning --</span>
               <div class="tv-seg-group">
-                <button id="btn-xr-bl-sector" type="button" class="tv-seg-btn active">Sector</button>
-                <button id="btn-xr-bl-cumic" type="button" class="tv-seg-btn">Cum IC</button>
+                <button id="btn-xr-bl-sector" type="button" class="tv-seg-btn active" data-i18n="xr.sector_btn">Sector</button>
+                <button id="btn-xr-bl-cumic" type="button" class="tv-seg-btn" data-i18n="xr.cumic_btn">Cum IC</button>
               </div>
             </div>
           </div>
+
+          <div id="xr-plain-verdict" class="tv-plain-verdict" aria-live="polite"></div>
 
           <div class="tv-canvas-wrap">
             <canvas id="tv-xray-canvas" aria-label="4-Quadrant Alpha Pipeline X-Ray and 5-Factor Spanning Canvas"></canvas>
@@ -368,16 +384,16 @@
       <section id="panel-crashtest" class="tv-bt-workspace hidden" role="tabpanel" aria-labelledby="tab-btn-crashtest">
         <aside class="tv-bt-rail" aria-label="Overfitting Crash-Test and Small-Sample Stress Controls">
           <div class="tv-rail-group">
-            <label for="ct-sweep-mode" class="tv-rail-lbl">Perturbation Grid</label>
-            <select id="ct-sweep-mode" class="tv-select tv-rail-select">
-              <option value="auto_2d" selected>Auto AST Lookback 2D Grid</option>
-              <option value="execution_2d">EMA Smooth x No-Trade Buffer</option>
+            <label for="ct-sweep-mode" class="tv-rail-lbl" data-i18n="ct.grid_lbl" data-i18n-title="ct.grid_title">Perturbation Grid</label>
+            <select id="ct-sweep-mode" class="tv-select tv-rail-select" data-i18n-title="ct.grid_title">
+              <option value="auto_2d" selected data-i18n="ct.opt.auto_2d">Auto AST Lookback 2D Grid</option>
+              <option value="execution_2d" data-i18n="ct.opt.exec_2d">EMA Smooth x No-Trade Buffer</option>
             </select>
           </div>
 
           <div class="tv-rail-row-2">
             <div>
-              <label for="ct-grid-size" class="tv-rail-lbl">Grid Size</label>
+              <label for="ct-grid-size" class="tv-rail-lbl" data-i18n="ct.gsize_lbl">Grid Size</label>
               <select id="ct-grid-size" class="tv-select tv-rail-select num">
                 <option value="3">3x3 (9)</option>
                 <option value="4">4x4 (16)</option>
@@ -385,8 +401,8 @@
               </select>
             </div>
             <div>
-              <label for="ct-cscv-splits" class="tv-rail-lbl">CSCV Splits</label>
-              <select id="ct-cscv-splits" class="tv-select tv-rail-select num">
+              <label for="ct-cscv-splits" class="tv-rail-lbl" data-i18n="ct.cscv_lbl" data-i18n-title="ct.cscv_title">CSCV Splits</label>
+              <select id="ct-cscv-splits" class="tv-select tv-rail-select num" data-i18n-title="ct.cscv_title">
                 <option value="8">8 Blocks</option>
                 <option value="10">10 Blocks</option>
                 <option value="12" selected>12 Blocks</option>
@@ -397,50 +413,50 @@
 
           <div class="tv-rail-row-2">
             <div>
-              <label for="ct-weight-select" class="tv-rail-lbl">Weighting</label>
-              <select id="ct-weight-select" class="tv-select tv-rail-select">
-                <option value="dollar_neutral" selected>Dollar Neutral</option>
-                <option value="long_only">Long Only</option>
-                <option value="equal_weight">Equal Weight</option>
-                <option value="raw">Raw Signal</option>
+              <label for="ct-weight-select" class="tv-rail-lbl" data-i18n="bt.weight_lbl" data-i18n-title="bt.weight_title">Weighting</label>
+              <select id="ct-weight-select" class="tv-select tv-rail-select" data-i18n-title="bt.weight_title">
+                <option value="dollar_neutral" selected data-i18n="bt.opt.dollar_neutral">Dollar Neutral</option>
+                <option value="long_only" data-i18n="bt.opt.long_only">Long Only</option>
+                <option value="equal_weight" data-i18n="bt.opt.equal_weight">Equal Weight</option>
+                <option value="raw" data-i18n="bt.opt.raw">Raw Signal</option>
               </select>
             </div>
             <div>
-              <label for="ct-slip-mode" class="tv-rail-lbl">Slippage</label>
+              <label for="ct-slip-mode" class="tv-rail-lbl" data-i18n="bt.slip_s_lbl">Slippage</label>
               <select id="ct-slip-mode" class="tv-select tv-rail-select">
-                <option value="corwin_schultz" selected>CS Half-Spread</option>
-                <option value="fixed">Fixed 5 bps</option>
+                <option value="corwin_schultz" selected data-i18n="bt.opt.cs">CS Half-Spread</option>
+                <option value="fixed" data-i18n="bt.opt.fixed">Fixed 5 bps</option>
               </select>
             </div>
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="bt.fee_title">
             <div class="tv-slider-hdr">
-              <label for="ct-fee-slider">Commission</label>
+              <label for="ct-fee-slider" data-i18n="bt.fee_lbl">Commission</label>
               <output id="ct-fee-val" class="num">5.0 bps</output>
             </div>
             <input id="ct-fee-slider" type="range" min="0" max="50" step="0.5" value="5" class="tv-range" />
           </div>
 
-          <div class="tv-slider-block">
+          <div class="tv-slider-block" data-i18n-title="ct.delist_title">
             <div class="tv-slider-hdr">
-              <label for="ct-delist-slider" title="Annualized survivorship/delisting return drag applied to gross long exposure on free datasets">Delist Drag</label>
+              <label for="ct-delist-slider" data-i18n="ct.delist_lbl" title="Annualized survivorship/delisting return drag applied to gross long exposure on free datasets">Delist Drag</label>
               <output id="ct-delist-val" class="num">OFF (0)</output>
             </div>
             <input id="ct-delist-slider" type="range" min="0" max="400" step="25" value="0" class="tv-range" />
           </div>
 
           <div class="tv-rail-group">
-            <label for="ct-boot-select" class="tv-rail-lbl">Null Worlds</label>
-            <select id="ct-boot-select" class="tv-select tv-rail-select num">
-              <option value="100">100 Synthetic Worlds</option>
-              <option value="200" selected>200 Synthetic Worlds</option>
-              <option value="400">400 Synthetic Worlds</option>
+            <label for="ct-boot-select" class="tv-rail-lbl" data-i18n="ct.null_lbl" data-i18n-title="ct.null_title">Null Worlds</label>
+            <select id="ct-boot-select" class="tv-select tv-rail-select num" data-i18n-title="ct.null_title">
+              <option value="100" data-i18n="ct.opt.100w">100 Synthetic Worlds</option>
+              <option value="200" selected data-i18n="ct.opt.200w">200 Synthetic Worlds</option>
+              <option value="400" data-i18n="ct.opt.400w">400 Synthetic Worlds</option>
             </select>
           </div>
 
-          <button id="btn-ct-run" type="button" class="tv-btn-primary tv-rail-action" title="Run 2D Sweep, CSCV PBO, Romano-Wolf &amp; Stationary Bootstrap">
-            <span>Run Crash-Test</span>
+          <button id="btn-ct-run" type="button" class="tv-btn-primary tv-rail-action" data-i18n-title="ct.null_title" title="Run 2D Sweep, CSCV PBO, Romano-Wolf &amp; Stationary Bootstrap">
+            <span data-i18n="ct.run_btn">Run Crash-Test</span>
           </button>
 
           <div id="ct-rail-latency" class="tv-rail-footer num">-- ms</div>
@@ -451,17 +467,19 @@
 
           <div class="tv-xr-toolbar">
             <div class="tv-xr-formula-bar">
-              <span class="tv-legend-ind-tag">Expr</span>
+              <span class="tv-legend-ind-tag" data-i18n="xr.expr">Expr</span>
               <code id="ct-formula-code" class="tv-xr-code mono">cs_rank(rsi(close, 14))</code>
             </div>
             <div class="tv-xr-toolbar-right">
               <span id="ct-verdict-banner" class="tv-xr-verdict num">Verdict --</span>
               <div class="tv-seg-group">
-                <button id="btn-ct-bl-boot" type="button" class="tv-seg-btn active">Bootstrap</button>
-                <button id="btn-ct-bl-cusum" type="button" class="tv-seg-btn">CUSUM</button>
+                <button id="btn-ct-bl-boot" type="button" class="tv-seg-btn active" data-i18n="ct.boot_btn">Bootstrap</button>
+                <button id="btn-ct-bl-cusum" type="button" class="tv-seg-btn" data-i18n="ct.cusum_btn">CUSUM</button>
               </div>
             </div>
           </div>
+
+          <div id="ct-plain-verdict" class="tv-plain-verdict" aria-live="polite"></div>
 
           <div class="tv-canvas-wrap">
             <canvas id="tv-crashtest-canvas" aria-label="4-Quadrant Overfitting Crash-Test, CSCV PBO, Stationary Bootstrap and Romano-Wolf Canvas"></canvas>
@@ -477,49 +495,49 @@
     <section id="tv-bottom-drawer" class="tv-bottom-drawer" aria-label="Formula Editor and Strategy Data Inspector">
       <div class="tv-drawer-bar">
         <div class="tv-drawer-tabs" role="tablist" aria-label="Bottom Panel Views">
-          <button type="button" role="tab" aria-selected="true" class="tv-subtab active" data-subtab="editor">
+          <button type="button" role="tab" aria-selected="true" class="tv-subtab active" data-subtab="editor" data-i18n="sub.editor">
             Editor
           </button>
-          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-summary">
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-summary" data-i18n="sub.perf">
             Performance
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-trades">
-            <span>Trades</span>
+            <span data-i18n="sub.trades">Trades</span>
             <span id="trades-count-badge" class="tv-inline-badge num">0</span>
           </button>
-          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="xray-matrix">
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="xray-matrix" data-i18n="sub.xray">
             X-Ray Matrix
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="ct-candidates">
-            <span>Crash-Test</span>
+            <span data-i18n="sub.crashtest">Crash-Test</span>
             <span id="ct-surv-badge" class="tv-inline-badge num">--</span>
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="forensics">
-            <span>Forensics</span>
+            <span data-i18n="sub.forensics">Forensics</span>
             <span id="forensics-badge" class="tv-inline-badge num">--</span>
           </button>
-          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="metrics">
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="metrics" data-i18n="sub.universe">
             Universe
           </button>
-          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="table">
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="table" data-i18n="sub.data">
             Data
           </button>
         </div>
 
         <div class="tv-drawer-actions">
           <div class="tv-presets" aria-label="Quick Formula Presets">
-            <button type="button" class="tv-preset-chip" title="cs_rank(rsi(close, 14))" data-formula="cs_rank(rsi(close, 14))">RSI Rank</button>
-            <button type="button" class="tv-preset-chip" title="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)" data-formula="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)">Sector Neutral</button>
-            <button type="button" class="tv-preset-chip" title="ema(close, 12) - ema(close, 26)" data-formula="ema(close, 12) - ema(close, 26)">EMA Cross</button>
-            <button type="button" class="tv-preset-chip" title="alpha_101(open, high, low, close)" data-formula="alpha_101(open, high, low, close)">Alpha #101</button>
-            <button id="btn-taker-preset" type="button" class="tv-preset-chip tv-preset-flow hidden" title="ema(taker_buy_ratio - 0.5, 12)" data-formula="ema(taker_buy_ratio - 0.5, 12)">Taker Flow</button>
+            <button type="button" class="tv-preset-chip" data-i18n="preset.rsi" data-i18n-title="preset.rsi_title" title="cs_rank(rsi(close, 14))" data-formula="cs_rank(rsi(close, 14))">RSI Rank</button>
+            <button type="button" class="tv-preset-chip" data-i18n="preset.sector" data-i18n-title="preset.sector_title" title="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)" data-formula="neutralize(cs_winsorize(ts_zscore(close, 20)), sector)">Sector Neutral</button>
+            <button type="button" class="tv-preset-chip" data-i18n="preset.ema" data-i18n-title="preset.ema_title" title="ema(close, 12) - ema(close, 26)" data-formula="ema(close, 12) - ema(close, 26)">EMA Cross</button>
+            <button type="button" class="tv-preset-chip" data-i18n="preset.a101" data-i18n-title="preset.a101_title" title="alpha_101(open, high, low, close)" data-formula="alpha_101(open, high, low, close)">Alpha #101</button>
+            <button id="btn-taker-preset" type="button" class="tv-preset-chip tv-preset-flow hidden" data-i18n="preset.flow" data-i18n-title="preset.flow_title" title="ema(taker_buy_ratio - 0.5, 12)" data-formula="ema(taker_buy_ratio - 0.5, 12)">Taker Flow</button>
           </div>
 
-          <button id="btn-evaluate-formula" type="button" class="tv-btn-primary" title="Compile and evaluate causal formula (Ctrl+Enter)">
+          <button id="btn-evaluate-formula" type="button" class="tv-btn-primary" data-i18n-title="editor.compile_title" title="Compile and evaluate causal formula (Ctrl+Enter)">
             <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
               <polygon points="6 4 20 12 6 20 6 4" />
             </svg>
-            <span>Compile</span>
+            <span data-i18n="editor.compile">Compile</span>
           </button>
 
           <button id="btn-toggle-drawer" type="button" class="tv-icon-btn" aria-label="Collapse or expand bottom panel" title="Minimize / Restore Panel">
@@ -547,13 +565,13 @@
           <div id="formula-error-banner" class="tv-banner tv-banner-err hidden" role="alert"></div>
           <div id="formula-notes-banner" class="tv-banner tv-banner-note hidden"></div>
           <div class="tv-editor-footer">
-            <span>AST Whitelist Sandbox: zero eval/exec, automatic causal <code class="mono">.over(ticker)</code> &amp; <code class="mono">.over(date)</code> staging</span>
+            <span data-i18n="editor.footer">AST Whitelist Sandbox: zero eval/exec, automatic causal .over(ticker) &amp; .over(date) staging</span>
             <span class="num" id="editor-latency-hint">-- ms</span>
           </div>
         </div>
 
         <div class="tv-ast-pane">
-          <div class="tv-ast-title">Causal Multi-Pass Execution Plan</div>
+          <div class="tv-ast-title" data-i18n="editor.ast_title">Causal Multi-Pass Execution Plan</div>
           <ol id="stage-list" class="tv-stage-list"></ol>
         </div>
       </div>
@@ -569,18 +587,18 @@
           <table class="tv-table num">
             <thead>
               <tr>
-                <th>Trade</th>
-                <th>Symbol</th>
-                <th>Side</th>
-                <th>Entry Time</th>
-                <th>Exit Time</th>
-                <th>Bars</th>
-                <th>Entry Px</th>
-                <th>Exit Px</th>
-                <th>Gross</th>
-                <th>Cost</th>
-                <th>Net</th>
-                <th>MAE / MFE</th>
+                <th data-i18n="tbl.tr_id">Trade</th>
+                <th data-i18n="tbl.sym">Symbol</th>
+                <th data-i18n="tbl.side">Side</th>
+                <th data-i18n="tbl.entry_t">Entry Time</th>
+                <th data-i18n="tbl.exit_t">Exit Time</th>
+                <th data-i18n="tbl.bars">Bars</th>
+                <th data-i18n="tbl.entry_p">Entry Px</th>
+                <th data-i18n="tbl.exit_p">Exit Px</th>
+                <th data-i18n="tbl.gross">Gross</th>
+                <th data-i18n="tbl.cost">Cost</th>
+                <th data-i18n="tbl.net">Net</th>
+                <th data-i18n="tbl.exc">MAE / MFE</th>
               </tr>
             </thead>
             <tbody id="bt-trades-body"></tbody>
@@ -594,15 +612,15 @@
           <table class="tv-table num">
             <thead>
               <tr>
-                <th>Pipeline Stage</th>
-                <th>IC Mean</th>
-                <th>ICIR</th>
-                <th>NW t-stat</th>
-                <th>Q5-Q1 Spread</th>
-                <th>Monotonic</th>
-                <th>Turnover</th>
-                <th>Max Sector Tilt</th>
-                <th>Skew / ExKurt</th>
+                <th data-i18n="tbl.xr_stage">Pipeline Stage</th>
+                <th data-i18n="tbl.xr_ic">IC Mean</th>
+                <th data-i18n="tbl.xr_icir">ICIR</th>
+                <th data-i18n="tbl.xr_nwt">NW t-stat</th>
+                <th data-i18n="tbl.xr_spread">Q5-Q1 Spread</th>
+                <th data-i18n="tbl.xr_mono">Monotonic</th>
+                <th data-i18n="tbl.xr_turn">Turnover</th>
+                <th data-i18n="tbl.xr_tilt">Max Sector Tilt</th>
+                <th data-i18n="tbl.xr_skew">Skew / ExKurt</th>
               </tr>
             </thead>
             <tbody id="xr-stages-tbody"></tbody>
@@ -613,13 +631,13 @@
           <table class="tv-table num">
             <thead>
               <tr>
-                <th>Benchmark Factor</th>
-                <th>Ortho</th>
-                <th>OLS Beta</th>
-                <th>DK NW t</th>
-                <th>Marg Corr</th>
-                <th>Pratt R2</th>
-                <th>Post-Ortho Corr</th>
+                <th data-i18n="tbl.sp_factor">Benchmark Factor</th>
+                <th data-i18n="tbl.sp_ortho">Ortho</th>
+                <th data-i18n="tbl.sp_beta">OLS Beta</th>
+                <th data-i18n="tbl.sp_dkt">DK NW t</th>
+                <th data-i18n="tbl.sp_marg">Marg Corr</th>
+                <th data-i18n="tbl.sp_pratt">Pratt R2</th>
+                <th data-i18n="tbl.sp_post">Post-Ortho Corr</th>
               </tr>
             </thead>
             <tbody id="xr-spanning-tbody"></tbody>
@@ -633,18 +651,18 @@
           <table class="tv-table num">
             <thead>
               <tr>
-                <th>Rank</th>
-                <th>Grid Parameter Spec</th>
-                <th>Net SR</th>
-                <th>Net Return</th>
-                <th>NW t-stat</th>
-                <th>Raw p</th>
-                <th>BH-FDR q</th>
-                <th>Romano-Wolf p</th>
-                <th>EB Post SR</th>
-                <th>EB P(SR&gt;0)</th>
-                <th>CUSUM p</th>
-                <th>7-Gate Verdict</th>
+                <th data-i18n="tbl.ct_rank">Rank</th>
+                <th data-i18n="tbl.ct_spec">Grid Parameter Spec</th>
+                <th data-i18n="tbl.ct_sr">Net SR</th>
+                <th data-i18n="tbl.ct_ret">Net Return</th>
+                <th data-i18n="tbl.ct_nwt">NW t-stat</th>
+                <th data-i18n="tbl.ct_praw">Raw p</th>
+                <th data-i18n="tbl.ct_qbh">BH-FDR q</th>
+                <th data-i18n="tbl.ct_rw">Romano-Wolf p</th>
+                <th data-i18n="tbl.ct_ebsr">EB Post SR</th>
+                <th data-i18n="tbl.ct_ebprob">EB P(SR&gt;0)</th>
+                <th data-i18n="tbl.ct_cusum">CUSUM p</th>
+                <th data-i18n="tbl.ct_verdict">7-Gate Verdict</th>
               </tr>
             </thead>
             <tbody id="ct-candidates-tbody"></tbody>
@@ -656,32 +674,32 @@
       <div id="subpanel-forensics" class="tv-subpanel hidden">
         <div class="tv-kpi-strip tv-kpi-strip-6">
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Data Health</div>
+            <div class="tv-kpi-lbl" data-i18n="fk.health">Data Health</div>
             <div id="fkpi-health" class="tv-kpi-val num">--</div>
             <div id="fkpi-health-sub" class="tv-kpi-sub num">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Corwin-Schultz Spread</div>
+            <div class="tv-kpi-lbl" data-i18n="fk.cs">Corwin-Schultz Spread</div>
             <div id="fkpi-cs" class="tv-kpi-val num">--</div>
             <div id="fkpi-cs-sub" class="tv-kpi-sub num">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Roll Spread &amp; Amihud</div>
+            <div class="tv-kpi-lbl" data-i18n="fk.roll">Roll Spread &amp; Amihud</div>
             <div id="fkpi-roll" class="tv-kpi-val num">--</div>
             <div id="fkpi-roll-sub" class="tv-kpi-sub num">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Rec. Min Slippage</div>
+            <div class="tv-kpi-lbl" data-i18n="fk.slip">Rec. Min Slippage</div>
             <div id="fkpi-slip" class="tv-kpi-val num">--</div>
             <div id="fkpi-slip-sub" class="tv-kpi-sub">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Survivorship Audit</div>
+            <div class="tv-kpi-lbl" data-i18n="fk.surv">Survivorship Audit</div>
             <div id="fkpi-surv" class="tv-kpi-val num">--</div>
             <div id="fkpi-surv-sub" class="tv-kpi-sub num">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Dirty Bar Counters</div>
+            <div class="tv-kpi-lbl" data-i18n="fk.dirty">Dirty Bar Counters</div>
             <div id="fkpi-dirty" class="tv-kpi-val num">--</div>
             <div id="fkpi-dirty-sub" class="tv-kpi-sub num">--</div>
           </div>
@@ -689,19 +707,19 @@
 
         <div class="tv-forensics-split">
           <div class="tv-forensics-pane">
-            <div class="tv-ast-title">Free-Data Hygiene &amp; Microstructure Warnings</div>
+            <div class="tv-ast-title" data-i18n="fk.warn_hdr">Free-Data Hygiene &amp; Microstructure Warnings</div>
             <ul id="forensics-warnings-list" class="tv-forensics-warn-list"></ul>
           </div>
           <div class="tv-forensics-pane">
-            <div class="tv-ast-title">Sample Flagged Bar Anomalies (Top 8)</div>
+            <div class="tv-ast-title" data-i18n="fk.anom_hdr">Sample Flagged Bar Anomalies (Top 8)</div>
             <div class="tv-table-scroll">
               <table class="tv-table num">
                 <thead>
                   <tr>
-                    <th>Symbol</th>
-                    <th>Timestamp</th>
-                    <th>Anomaly</th>
-                    <th>Detail</th>
+                    <th data-i18n="tbl.sym">Symbol</th>
+                    <th data-i18n="fk.anom_time">Timestamp</th>
+                    <th data-i18n="fk.anom_kind">Anomaly</th>
+                    <th data-i18n="fk.anom_detail">Detail</th>
                   </tr>
                 </thead>
                 <tbody id="forensics-anomalies-body"></tbody>
@@ -715,22 +733,22 @@
       <div id="subpanel-metrics" class="tv-subpanel hidden">
         <div class="tv-kpi-strip">
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Dataset Rows</div>
+            <div class="tv-kpi-lbl" data-i18n="uni.rows">Dataset Rows</div>
             <div id="kpi-rows" class="tv-kpi-val num">--</div>
             <div id="kpi-span" class="tv-kpi-sub num">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Universe</div>
+            <div class="tv-kpi-lbl" data-i18n="uni.univ">Universe</div>
             <div id="kpi-symbols" class="tv-kpi-val num">--</div>
             <div id="kpi-sectors" class="tv-kpi-sub">--</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">OHLCV Check</div>
+            <div class="tv-kpi-lbl" data-i18n="uni.ohlcv">OHLCV Check</div>
             <div id="kpi-ohlcv" class="tv-kpi-val num">--</div>
             <div id="kpi-hash" class="tv-kpi-sub mono">sha256: --</div>
           </div>
           <div class="tv-kpi-cell">
-            <div class="tv-kpi-lbl">Valid Coverage</div>
+            <div class="tv-kpi-lbl" data-i18n="uni.cov">Valid Coverage</div>
             <div id="kpi-coverage" class="tv-kpi-val num">--</div>
             <div id="kpi-latency" class="tv-kpi-sub num">-- ms</div>
           </div>
@@ -742,8 +760,8 @@
       <div id="subpanel-table" class="tv-subpanel tv-table-pane hidden">
         <div class="tv-table-toolbar">
           <div class="tv-seg-group">
-            <button type="button" id="btn-tbl-signal" class="tv-seg-btn active">Evaluated Signal Tail</button>
-            <button type="button" id="btn-tbl-raw" class="tv-seg-btn">Raw OHLCV Head</button>
+            <button type="button" id="btn-tbl-signal" class="tv-seg-btn active" data-i18n="data.sig_tail">Evaluated Signal Tail</button>
+            <button type="button" id="btn-tbl-raw" class="tv-seg-btn" data-i18n="data.raw_head">Raw OHLCV Head</button>
           </div>
           <span id="dataset-columns-caption" class="tv-muted-meta mono"></span>
         </div>
@@ -765,7 +783,7 @@
   <div id="fx-modal" class="tv-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="fx-modal-title">
     <div class="tv-modal">
       <div class="tv-modal-header">
-        <h2 id="fx-modal-title" class="tv-modal-title">Indicators, Metrics &amp; Falsification Primitives</h2>
+        <h2 id="fx-modal-title" class="tv-modal-title" data-i18n="mod.fx_title">Indicators, Metrics &amp; Falsification Primitives</h2>
         <button id="btn-close-fx" type="button" class="tv-icon-btn" aria-label="Close Indicators dialog">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M18 6L6 18M6 6l12 12" />
@@ -779,7 +797,7 @@
           <path d="M20 20l-3.5-3.5" />
         </svg>
         <label for="catalog-search" class="sr-only">Search polars-anta functions</label>
-        <input id="catalog-search" type="search" class="tv-modal-input" placeholder="Search 223 functions (rsi, supertrend, cs_rank, value_at_risk, romano_wolf)..." autocomplete="off" />
+        <input id="catalog-search" type="search" class="tv-modal-input" data-i18n-placeholder="mod.fx_search" placeholder="Search 223 functions (rsi, supertrend, cs_rank, value_at_risk, romano_wolf)..." autocomplete="off" />
       </div>
 
       <div class="tv-modal-body">
@@ -794,8 +812,8 @@
     <div class="tv-modal tv-public-modal">
       <div class="tv-modal-header">
         <div>
-          <h2 id="public-data-title" class="tv-modal-title">Zero-Key Public Market Data Hub</h2>
-          <div id="public-cache-meta" class="tv-muted-meta mono">Cache outside Git repo</div>
+          <h2 id="public-data-title" class="tv-modal-title" data-i18n="mod.pub_title">Zero-Key Public Market Data Hub</h2>
+          <div id="public-cache-meta" class="tv-muted-meta mono" data-i18n="mod.pub_desc">Fetch real free OHLCV market data legally from Binance or Stooq (no API key needed).</div>
         </div>
         <button id="btn-close-public-data" type="button" class="tv-icon-btn" aria-label="Close Public Data dialog">
           <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -813,7 +831,7 @@
     <div class="tv-modal tv-export-modal">
       <div class="tv-modal-header">
         <div>
-          <h2 id="export-modal-title" class="tv-modal-title">Production Polars Export &amp; Alpha Passport</h2>
+          <h2 id="export-modal-title" class="tv-modal-title" data-i18n="mod.exp_title">Production Polars Export &amp; Alpha Passport</h2>
           <div id="export-passport-meta" class="tv-muted-meta mono">Assembling audit bundle...</div>
         </div>
         <button id="btn-close-export" type="button" class="tv-icon-btn" aria-label="Close Export dialog">
@@ -828,18 +846,37 @@
 
       <div class="tv-export-toolbar">
         <div class="tv-seg-group">
-          <button id="btn-exp-tab-py" type="button" class="tv-seg-btn active">Polars + polars-anta (.py)</button>
-          <button id="btn-exp-tab-json" type="button" class="tv-seg-btn">alpha_passport.json</button>
+          <button id="btn-exp-tab-py" type="button" class="tv-seg-btn active" data-i18n="mod.exp_tab_py">Polars + polars-anta (.py)</button>
+          <button id="btn-exp-tab-json" type="button" class="tv-seg-btn" data-i18n="mod.exp_tab_json">alpha_passport.json</button>
         </div>
         <div class="tv-export-actions">
-          <button id="btn-copy-py" type="button" class="tv-tool-btn">Copy .py</button>
-          <button id="btn-dl-py" type="button" class="tv-btn-primary">Download .py</button>
-          <button id="btn-dl-html" type="button" class="tv-tool-btn">HTML Tearsheet</button>
-          <button id="btn-dl-passport" type="button" class="tv-tool-btn">Passport JSON</button>
+          <button id="btn-copy-py" type="button" class="tv-tool-btn" data-i18n="mod.exp_copy">Copy .py</button>
+          <button id="btn-dl-py" type="button" class="tv-btn-primary" data-i18n="mod.exp_dl_py">Download .py</button>
+          <button id="btn-dl-html" type="button" class="tv-tool-btn" data-i18n="mod.exp_dl_html">HTML Tearsheet</button>
+          <button id="btn-dl-passport" type="button" class="tv-tool-btn" data-i18n="mod.exp_dl_json">Passport JSON</button>
         </div>
       </div>
 
       <pre id="export-preview-pre" class="tv-export-pre mono"></pre>
+    </div>
+  </div>
+
+  <!-- Bilingual Onboarding Guide, 3 Interactive Demos & Binance/Stooq Real Data Modal -->
+  <div id="guide-modal" class="tv-modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="guide-modal-title">
+    <div class="tv-modal tv-guide-modal">
+      <div class="tv-modal-header">
+        <div>
+          <h2 id="guide-modal-title" class="tv-modal-title">AnQuantLab Guide</h2>
+          <div id="guide-modal-sub" class="tv-muted-meta"></div>
+        </div>
+        <button id="btn-close-guide" type="button" class="tv-icon-btn" aria-label="Close Guide dialog">
+          <svg class="tv-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="guide-tabs-bar" class="guide-tabs" role="tablist"></div>
+      <div id="guide-modal-body" class="guide-body"></div>
     </div>
   </div>
 

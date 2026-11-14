@@ -4,6 +4,8 @@
 
 import { runXRay } from "./api.js";
 import { syncVaultAndLedgerUi } from "./forensics_hub.js";
+import { renderPlainVerdict } from "./guide_hub.js";
+import { getLang, localizeTag } from "./i18n.js";
 import { TVXRayChart } from "./tv_xray_chart.js";
 
 function fmtSigned(v, digits = 3) {
@@ -104,6 +106,12 @@ export class XRayLabController {
       }
     });
 
+    window.addEventListener("aql:langchange", () => {
+      this._syncLabels();
+      if (this.lastResponse) this._renderResponse(this.lastResponse);
+      else this.chart.render();
+    });
+
     this._syncLabels();
   }
 
@@ -167,15 +175,18 @@ export class XRayLabController {
     }
 
     syncVaultAndLedgerUi(res);
+    renderPlainVerdict("xray", res);
 
     const hitTag = res.basis_cache_hit ? "BASIS" : "COLD";
+    const vi = getLang() === "vi";
+    const shapeTxt = res.is_panel ? (vi ? "Bảng Nhiều mã" : "Panel CS") : vi ? "Đơn chuỗi" : "Single TS";
     document.getElementById("xr-rail-latency").textContent =
-      `${res.elapsed_ms.toFixed(1)}ms | ${hitTag} | ${res.is_panel ? "Panel CS" : "Single TS"}`;
+      `${res.elapsed_ms.toFixed(1)}ms | ${hitTag} | ${shapeTxt}`;
 
     const sp = res.spanning;
     const verdictEl = document.getElementById("xr-verdict-banner");
-    verdictEl.textContent = sp.verdict.replace(/_/g, " ");
-    verdictEl.title = `${sp.verdict}: ${sp.verdict_summary}`;
+    verdictEl.textContent = localizeTag("verdict", sp.verdict);
+    verdictEl.title = `${localizeTag("verdict", sp.verdict)}: ${sp.verdict_summary}`;
     verdictEl.className = `tv-xr-verdict num ${
       sp.verdict === "DISTINCT_ALPHA"
         ? "val-pos"
@@ -200,6 +211,7 @@ export class XRayLabController {
   _renderStageStrip(res) {
     const strip = document.getElementById("xr-stage-strip");
     strip.textContent = "";
+    const vi = getLang() === "vi";
     res.stages.forEach((st, idx) => {
       const card = document.createElement("button");
       card.type = "button";
@@ -209,7 +221,7 @@ export class XRayLabController {
       const hdr = document.createElement("div");
       hdr.className = "tv-xr-card-hdr";
       const title = document.createElement("span");
-      title.textContent = st.label;
+      title.textContent = localizeTag("stage", st.label);
       const tTag = document.createElement("span");
       tTag.className = `num ${Math.abs(st.nw_t_stat) >= 1.96 ? "val-pos" : ""}`;
       tTag.textContent = `NW t ${fmtSigned(st.nw_t_stat, 2)}`;
@@ -221,7 +233,7 @@ export class XRayLabController {
 
       const row2 = document.createElement("div");
       row2.className = "tv-xr-card-metrics num";
-      row2.textContent = `Q5-Q1 ${fmtSigned(st.top_minus_bottom_bps, 1)}bp | Turn ${st.turnover_mean.toFixed(2)}`;
+      row2.textContent = `Q5-Q1 ${fmtSigned(st.top_minus_bottom_bps, 1)}bp | ${vi ? "Đảo" : "Turn"} ${st.turnover_mean.toFixed(2)}`;
 
       card.append(hdr, row1, row2);
       strip.appendChild(card);
@@ -234,7 +246,7 @@ export class XRayLabController {
     for (const st of res.stages) {
       const tr = document.createElement("tr");
       const cells = [
-        st.label,
+        localizeTag("stage", st.label),
         fmtSigned(st.ic_mean, 4),
         fmtSigned(st.icir, 3),
         fmtSigned(st.nw_t_stat, 2),
@@ -255,11 +267,12 @@ export class XRayLabController {
 
     const spBody = document.getElementById("xr-spanning-tbody");
     spBody.textContent = "";
+    const vi = getLang() === "vi";
     for (const ld of res.spanning.loadings) {
       const tr = document.createElement("tr");
       const cells = [
-        ld.factor_label,
-        ld.selected ? "ON" : "OFF",
+        localizeTag("factor", ld.factor_label),
+        ld.selected ? (vi ? "BẬT" : "ON") : vi ? "TẮT" : "OFF",
         fmtSigned(ld.beta, 4),
         fmtSigned(ld.nw_t_stat, 2),
         fmtSigned(ld.marginal_corr, 4),

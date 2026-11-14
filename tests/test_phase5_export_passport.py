@@ -188,9 +188,27 @@ def test_export_bundle_passport_sha256_and_offline_tearsheet(tmp_path: Path) -> 
     # Self-contained offline HTML Tearsheet check (zero external http/https assets)
     html_doc = bundle["tearsheet_html"]
     assert "<!DOCTYPE html>" in html_doc
+    assert '<html lang="en">' in html_doc
     assert "<svg" in html_doc
     assert "http://" not in html_doc and "https://" not in html_doc
     assert not _EMOJI_RE.search(html_doc)
+
+    # Bilingual Vietnamese tearsheet export check
+    resp_vi = client.post(
+        "/api/export/bundle",
+        json={
+            "dataset_id": "builtin_demo_panel",
+            "formula": "cs_rank(rsi(close, 14))",
+            "lang": "vi",
+        },
+    )
+    assert resp_vi.status_code == 200, resp_vi.text
+    html_vi = resp_vi.json()["tearsheet_html"]
+    assert '<html lang="vi">' in html_vi
+    assert "Phễu Lọc 7 Cổng" in html_vi
+    assert "http://" not in html_vi and "https://" not in html_vi
+    assert not _EMOJI_RE.search(html_vi)
+    assert "\u2014" not in html_vi and "\u2013" not in html_vi
 
     # Error handling checks
     assert (

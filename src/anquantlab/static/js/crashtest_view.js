@@ -4,6 +4,8 @@
 
 import { runCrashTest } from "./api.js";
 import { syncVaultAndLedgerUi } from "./forensics_hub.js";
+import { renderPlainVerdict } from "./guide_hub.js";
+import { getLang, localizeTag, t } from "./i18n.js";
 import { TVCrashTestChart } from "./tv_crashtest_chart.js";
 
 function fmtSigned(v, digits = 2) {
@@ -50,9 +52,10 @@ export class CrashTestLabController {
   _syncLabels() {
     const fee = Number(document.getElementById("ct-fee-slider").value);
     const delist = Number(document.getElementById("ct-delist-slider").value);
+    const vi = getLang() === "vi";
     document.getElementById("ct-fee-val").textContent = `${fee.toFixed(1)} bps`;
     document.getElementById("ct-delist-val").textContent =
-      delist > 0 ? `${delist.toFixed(0)} bps/yr` : "OFF (0)";
+      delist > 0 ? `${delist.toFixed(0)} bps/yr` : vi ? "TẮT (0)" : "OFF (0)";
   }
 
   _bindControls() {
@@ -90,6 +93,12 @@ export class CrashTestLabController {
       btnCusum.classList.add("active");
       btnBoot.classList.remove("active");
       this.chart.setBottomLeftMode("cusum");
+    });
+
+    window.addEventListener("aql:langchange", () => {
+      this._syncLabels();
+      if (this.lastResponse) this._renderResponse(this.lastResponse);
+      else this.chart.render();
     });
 
     this._syncLabels();
@@ -139,14 +148,16 @@ export class CrashTestLabController {
         ? `${(sessBar.probability * 100).toFixed(1)}%`
         : "--";
     syncVaultAndLedgerUi(res, dsrPct);
+    renderPlainVerdict("crashtest", res);
 
+    const vi = getLang() === "vi";
     document.getElementById("ct-rail-latency").textContent =
-      `${res.elapsed_ms.toFixed(1)}ms | ${res.candidates.length} trials | N_eff ${tl.effective_n_trials.toFixed(1)}`;
+      `${res.elapsed_ms.toFixed(1)}ms | ${res.candidates.length} ${vi ? "biến thể" : "trials"} | N_eff ${tl.effective_n_trials.toFixed(1)}`;
     document.getElementById("ct-formula-code").textContent = res.normalized_formula;
 
     const verdictEl = document.getElementById("ct-verdict-banner");
-    verdictEl.textContent = res.verdict.replace(/_/g, " ");
-    verdictEl.title = `${res.verdict}: ${res.verdict_summary}`;
+    verdictEl.textContent = localizeTag("verdict", res.verdict);
+    verdictEl.title = `${localizeTag("verdict", res.verdict)}: ${res.verdict_summary}`;
     verdictEl.className = `tv-xr-verdict num ${
       res.verdict === "SURVIVES_FALSIFICATION"
         ? "val-pos"
@@ -163,6 +174,7 @@ export class CrashTestLabController {
   _renderTopCards(res) {
     const strip = document.getElementById("ct-summary-strip");
     strip.textContent = "";
+    const vi = getLang() === "vi";
     const hm = res.heatmap;
     const pbo = res.pbo;
     const bs = res.bootstrap;
@@ -172,21 +184,21 @@ export class CrashTestLabController {
 
     const cards = [
       [
-        "1. 2D Surface",
-        `Base ${fmtSigned(hm.baseline_sharpe, 2)}`,
+        vi ? "1. Bề mặt 2D" : "1. 2D Surface",
+        `${vi ? "Gốc" : "Base"} ${fmtSigned(hm.baseline_sharpe, 2)}`,
         hm.baseline_sharpe > 0.5 ? "val-pos" : hm.baseline_sharpe < 0 ? "val-neg" : "",
-        `Peak ${fmtSigned(hm.best_sharpe, 2)} | Med ${fmtSigned(hm.median_sharpe, 2)}`,
-        `Plateau ${hm.neighbor_plateau_ratio.toFixed(2)} | Pos ${(hm.positive_grid_share * 100).toFixed(0)}%`,
+        `${vi ? "Đỉnh" : "Peak"} ${fmtSigned(hm.best_sharpe, 2)} | Med ${fmtSigned(hm.median_sharpe, 2)}`,
+        `${vi ? "Độ bền" : "Plateau"} ${hm.neighbor_plateau_ratio.toFixed(2)} | Pos ${(hm.positive_grid_share * 100).toFixed(0)}%`,
       ],
       [
         "2. CSCV (PBO)",
         `PBO ${(pbo.pbo * 100).toFixed(1)}%`,
         pbo.pbo < 0.35 ? "val-pos" : pbo.pbo >= 0.55 ? "val-neg" : "val-warn",
-        `OOS Loss ${(pbo.prob_oos_loss * 100).toFixed(1)}%`,
-        `${pbo.n_combinations.toLocaleString()} splits | Slope ${pbo.degradation_slope.toFixed(2)}`,
+        `${vi ? "Lỗ OOS" : "OOS Loss"} ${(pbo.prob_oos_loss * 100).toFixed(1)}%`,
+        `${pbo.n_combinations.toLocaleString()} ${vi ? "lát cắt" : "splits"} | Slope ${pbo.degradation_slope.toFixed(2)}`,
       ],
       [
-        "3. Bootstrap",
+        vi ? "3. Giả lập Bootstrap" : "3. Bootstrap",
         `Null p ${bs.null_p_value.toFixed(3)}`,
         bs.null_p_value <= 0.05 ? "val-pos" : bs.null_p_value > 0.25 ? "val-neg" : "val-warn",
         `Med ${fmtSigned(bs.sharpe_median, 2)} | Null95 ${bs.null_sharpe_95.toFixed(2)}`,
@@ -196,8 +208,8 @@ export class CrashTestLabController {
         "4. Romano-Wolf",
         `RW ${rwGate.survivors}/${rwGate.total}`,
         rwGate.survivors > 0 && !cs.has_break ? "val-pos" : cs.has_break ? "val-warn" : "",
-        `All-7 Pass ${finalGate.survivors}/${finalGate.total}`,
-        `CUSUM Q ${cs.statistic.toFixed(2)} (${cs.has_break ? "BREAK" : "STABLE"})`,
+        `${vi ? "Qua 7 cổng" : "All-7 Pass"} ${finalGate.survivors}/${finalGate.total}`,
+        `CUSUM Q ${cs.statistic.toFixed(2)} (${cs.has_break ? (vi ? "GÃY" : "BREAK") : vi ? "ỔN ĐỊNH" : "STABLE"})`,
       ],
     ];
 
@@ -248,7 +260,7 @@ export class CrashTestLabController {
         [fmtSigned(row.eb_posterior_sharpe, 3), ""],
         [`${(row.eb_prob_positive * 100).toFixed(1)}%`, row.eb_prob_positive >= 0.8 ? "val-pos" : ""],
         [row.cusum_p.toFixed(3), row.cusum_p < 0.05 ? "val-warn" : ""],
-        [row.survived_all ? "PASS" : "REJECT", row.survived_all ? "val-pos" : "val-neg"],
+        [row.survived_all ? t("verdict.pass") : t("verdict.fail"), row.survived_all ? "val-pos" : "val-neg"],
       ];
       for (const [txt, cls] of cells) {
         const td = document.createElement("td");
