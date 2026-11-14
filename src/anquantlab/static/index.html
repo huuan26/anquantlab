@@ -82,6 +82,14 @@
       </div>
 
       <div class="tv-topbar-right">
+        <button id="btn-holdout-vault" type="button" class="tv-tool-btn tv-vault-sealed num" title="Toggle 25% Out-of-Sample Holdout Vault (peeks are logged in Trial Ledger)">
+          Vault: SEALED (75% IS)
+        </button>
+
+        <div id="trial-ledger-pill" class="tv-engine-pill num" title="Multiple-Testing Defense: Distinct Trials, Eigenvalue Independent N_eff &amp; Live Deflated Sharpe Ratio">
+          <span id="trial-ledger-text">Trials 0 | N_eff 1.0 | DSR --</span>
+        </div>
+
         <div id="engine-status-pill" class="tv-engine-pill num" title="Polars Rust Engine Resource Guard">
           <span class="tv-dot"></span>
           <span id="engine-status-text">polars-anta ...</span>
@@ -105,26 +113,139 @@
 
     <!-- Upper Main Visual Workspace -->
     <main class="tv-upper-workspace" role="main">
-      <!-- Tab 1: Dual-Pane Chart Canvas + Floating OHLCV Legend -->
-      <section id="panel-backtest" class="tv-canvas-pane" role="tabpanel" aria-labelledby="tab-btn-backtest">
-        <div class="tv-chart-legend" aria-live="polite">
-          <div class="tv-legend-row">
-            <span id="legend-symbol" class="tv-legend-sym">AQL01</span>
-            <span id="legend-dataset" class="tv-legend-meta">Synthetic Panel</span>
-            <span id="legend-ohlc" class="tv-legend-ohlc num">O -- H -- L -- C --</span>
+      <!-- Tab 1: Realtime Cost/Buffer Lab Sidebar + Dual Stage (Equity Lab / Candles) -->
+      <section id="panel-backtest" class="tv-bt-workspace" role="tabpanel" aria-labelledby="tab-btn-backtest">
+        <aside class="tv-bt-rail" aria-label="Execution Friction and Portfolio Controls">
+          <div class="tv-rail-group">
+            <label for="bt-preset-select" class="tv-rail-lbl">Market Friction Preset</label>
+            <select id="bt-preset-select" class="tv-select tv-rail-select">
+              <option value="standard" selected>Global Standard (5+5 bps)</option>
+              <option value="vn_cash_limit">VN Cash Equity (CS + Limit-Lock)</option>
+              <option value="vn30f1m_intraday">VN30F1M Futures (EOD Flatten)</option>
+              <option value="crypto_perp_taker">Crypto Taker Flow (CS Spread)</option>
+              <option value="custom">Custom Friction</option>
+            </select>
           </div>
-          <div class="tv-legend-row">
-            <span class="tv-legend-ind-tag">Signal</span>
-            <span id="legend-formula" class="tv-legend-formula mono">cs_rank(rsi(close, 14))</span>
-            <span id="legend-sig-val" class="tv-legend-sig num">--</span>
-            <span id="cache-badge" class="tv-micro-tag num">INIT</span>
-            <button id="forensics-pill" type="button" class="tv-micro-tag tv-forensics-pill num" title="Open Free-Data Forensics &amp; Implicit Spread Audit">
-              Health -- | Min Slip -- bps
-            </button>
+
+          <div class="tv-rail-row-2">
+            <div>
+              <label for="bt-weight-select" class="tv-rail-lbl">Weighting</label>
+              <select id="bt-weight-select" class="tv-select tv-rail-select">
+                <option value="dollar_neutral" selected>Dollar Neutral</option>
+                <option value="long_only">Long Only</option>
+                <option value="equal_weight">Equal Weight</option>
+                <option value="raw">Raw Signal</option>
+              </select>
+            </div>
+            <div>
+              <label for="bt-exec-select" class="tv-rail-lbl">Exec Price</label>
+              <select id="bt-exec-select" class="tv-select tv-rail-select">
+                <option value="close" selected>Close</option>
+                <option value="open">Open</option>
+                <option value="twap">TWAP</option>
+                <option value="vwap">VWAP</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="tv-canvas-wrap">
-          <canvas id="tv-main-canvas" aria-label="OHLCV Candlestick and Alpha Signal Chart"></canvas>
+
+          <div class="tv-rail-group">
+            <label for="bt-slip-mode" class="tv-rail-lbl">Endogenous Slippage Model</label>
+            <select id="bt-slip-mode" class="tv-select tv-rail-select">
+              <option value="fixed" selected>Fixed Basis Points</option>
+              <option value="corwin_schultz">Corwin-Schultz OHLC Half-Spread</option>
+              <option value="amihud">Amihud Illiquidity Impact</option>
+            </select>
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="bt-fee-slider">Commission (1-Way)</label>
+              <output id="bt-fee-val" class="num">5.0 bps</output>
+            </div>
+            <input id="bt-fee-slider" type="range" min="0" max="50" step="0.5" value="5" class="tv-range" />
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="bt-slip-slider">Slippage / Extra Impact</label>
+              <output id="bt-slip-val" class="num">5.0 bps</output>
+            </div>
+            <input id="bt-slip-slider" type="range" min="0" max="80" step="0.5" value="5" class="tv-range" />
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="bt-vol-slider">Target Volatility</label>
+              <output id="bt-vol-val" class="num">OFF</output>
+            </div>
+            <input id="bt-vol-slider" type="range" min="0" max="45" step="1" value="0" class="tv-range" />
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="bt-buf-slider">No-Trade Hysteresis Buffer</label>
+              <output id="bt-buf-val" class="num">0.000</output>
+            </div>
+            <input id="bt-buf-slider" type="range" min="0" max="0.20" step="0.005" value="0" class="tv-range" />
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="bt-lag-slider">Execution Signal Lag</label>
+              <output id="bt-lag-val" class="num">1 bar</output>
+            </div>
+            <input id="bt-lag-slider" type="range" min="0" max="3" step="1" value="1" class="tv-range" />
+          </div>
+
+          <div class="tv-rail-checks">
+            <label class="tv-check-lbl">
+              <input id="bt-limit-lock" type="checkbox" />
+              <span>Skip Fill on Limit-Lock / 0-Vol</span>
+            </label>
+            <label class="tv-check-lbl">
+              <input id="bt-intraday-flat" type="checkbox" />
+              <span>Intraday Session EOD Flatten</span>
+            </label>
+          </div>
+
+          <div id="bt-rail-latency" class="tv-rail-footer num">-- ms</div>
+        </aside>
+
+        <div class="tv-canvas-pane">
+          <div class="tv-chart-mode-bar">
+            <div class="tv-seg-group">
+              <button id="btn-view-equity" type="button" class="tv-seg-btn active">Equity, Drawdown &amp; Cost Curve</button>
+              <button id="btn-view-candles" type="button" class="tv-seg-btn">Candles &amp; Trade Fills</button>
+            </div>
+          </div>
+
+          <div class="tv-chart-legend" aria-live="polite">
+            <div id="legend-eq-row" class="tv-legend-row">
+              <span class="tv-legend-sym">Portfolio</span>
+              <span id="legend-dataset" class="tv-legend-meta">Synthetic Panel</span>
+              <span id="legend-eq-vals" class="tv-legend-ohlc num">Net -- | Gross -- | Bench -- | DD --</span>
+            </div>
+            <div id="legend-ohlc-row" class="tv-legend-row hidden">
+              <span id="legend-symbol" class="tv-legend-sym">AQL01</span>
+              <span id="legend-ohlc" class="tv-legend-ohlc num">O -- H -- L -- C --</span>
+            </div>
+            <div class="tv-legend-row">
+              <span class="tv-legend-ind-tag">Signal</span>
+              <span id="legend-formula" class="tv-legend-formula mono">cs_rank(rsi(close, 14))</span>
+              <span id="legend-sig-val" class="tv-legend-sig num">--</span>
+              <span id="cache-badge" class="tv-micro-tag num">INIT</span>
+              <button id="forensics-pill" type="button" class="tv-micro-tag tv-forensics-pill num" title="Open Free-Data Forensics &amp; Implicit Spread Audit">
+                Health -- | Min Slip -- bps
+              </button>
+            </div>
+          </div>
+
+          <div id="bt-equity-wrap" class="tv-canvas-wrap">
+            <canvas id="tv-bt-canvas" aria-label="Portfolio Equity, Drawdown, Breakeven Cost Curve and MAE/MFE Scatter"></canvas>
+          </div>
+          <div id="bt-candle-wrap" class="tv-canvas-wrap hidden">
+            <canvas id="tv-main-canvas" aria-label="OHLCV Candlestick and Alpha Signal Chart"></canvas>
+          </div>
         </div>
       </section>
 
@@ -169,6 +290,13 @@
         <div class="tv-drawer-tabs" role="tablist" aria-label="Bottom Panel Views">
           <button type="button" role="tab" aria-selected="true" class="tv-subtab active" data-subtab="editor">
             Pine / Formula Editor
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-summary">
+            Performance &amp; Tail Risk
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="bt-trades">
+            <span>List of Trades (MAE/MFE)</span>
+            <span id="trades-count-badge" class="tv-inline-badge num">0</span>
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="forensics">
             <span>Forensics &amp; Spread Audit</span>
@@ -231,6 +359,36 @@
         <div class="tv-ast-pane">
           <div class="tv-ast-title">Causal Multi-Pass Execution Plan</div>
           <ol id="stage-list" class="tv-stage-list"></ol>
+        </div>
+      </div>
+
+      <!-- Sub-View 1.2: Strategy Performance, Breakeven & 4 Tail-Risk Metrics -->
+      <div id="subpanel-bt-summary" class="tv-subpanel hidden">
+        <div id="bt-kpi-grid" class="tv-kpi-strip tv-kpi-strip-5"></div>
+      </div>
+
+      <!-- Sub-View 1.3: Round-Trip Trade Ledger with MAE/MFE -->
+      <div id="subpanel-bt-trades" class="tv-subpanel tv-table-pane hidden">
+        <div class="tv-table-scroll">
+          <table class="tv-table num">
+            <thead>
+              <tr>
+                <th>Trade</th>
+                <th>Symbol</th>
+                <th>Side</th>
+                <th>Entry Time</th>
+                <th>Exit Time</th>
+                <th>Bars</th>
+                <th>Entry Px</th>
+                <th>Exit Px</th>
+                <th>Gross</th>
+                <th>Cost</th>
+                <th>Net</th>
+                <th>MAE / MFE</th>
+              </tr>
+            </thead>
+            <tbody id="bt-trades-body"></tbody>
+          </table>
         </div>
       </div>
 

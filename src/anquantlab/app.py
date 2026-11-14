@@ -18,10 +18,13 @@ from fastapi.responses import FileResponse  # noqa: E402
 from fastapi.staticfiles import StaticFiles  # noqa: E402
 
 from . import __version__  # noqa: E402
+from .backtest_lab import BacktestLabEngine  # noqa: E402
 from .catalog import build_catalog  # noqa: E402
 from .expr_dsl import FormulaSyntaxError  # noqa: E402
 from .public_data import HttpGetter, list_public_presets  # noqa: E402
 from .schemas import (  # noqa: E402
+    BacktestRunRequest,
+    BacktestRunResponse,
     CatalogResponse,
     ChartBarPoint,
     DatasetForensicsResponse,
@@ -34,8 +37,10 @@ from .schemas import (  # noqa: E402
     PublicFetchRequest,
     PublicPresetListResponse,
     SignalSummaryStats,
+    TrialLedgerSnapshot,
 )
 from .store import WorkbenchStore  # noqa: E402
+from .trial_ledger import TrialLedgerRegistry  # noqa: E402
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 
@@ -93,6 +98,8 @@ def create_app(
     """Create a stateless, resource-guarded FastAPI instance for AnQuantLab."""
     cfg = settings or load_settings()
     store = WorkbenchStore(cfg)
+    trial_ledger = TrialLedgerRegistry()
+    bt_engine = BacktestLabEngine()
     semaphore = asyncio.Semaphore(cfg.max_concurrent)
 
     app = FastAPI(
@@ -102,6 +109,8 @@ def create_app(
     )
     app.state.settings = cfg
     app.state.store = store
+    app.state.trial_ledger = trial_ledger
+    app.state.bt_engine = bt_engine
 
     async def _run_guarded(fn: Any, *args: Any) -> Any:
         async with semaphore:
@@ -298,6 +307,23 @@ def create_app(
             chart_series=chart_points,
             sample_rows=valid_tail.to_dicts(),
         )
+
+    @app.post("/api/backtest/run", response_model=BacktestRunResponse)
+    async def run_backtest(req: BacktestRunRequest) -> BacktestRunResponse:
+        try:
+            return await _run_guarded(bt_engine.run, store, trial_ledger, req)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FormulaSyntaxError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=400, detail=f"Backtest execution error: {exc}") from exc
+
+    @app.get("/api/trials/{dataset_id}", response_model=TrialLedgerSnapshot)
+    async def get_trial_ledger(dataset_id: str) -> TrialLedgerSnapshot:
+        return trial_ledger.get_snapshot(dataset_id)
 
     @app.get("/", include_in_schema=False)
     async def serve_index() -> FileResponse:

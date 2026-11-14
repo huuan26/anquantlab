@@ -75,3 +75,15 @@ export async function previewFormula(
     }),
   });
 }
+
+export async function runBacktest(payload) {
+  return requestJson("/api/backtest/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function fetchTrialLedger(datasetId) {
+  return requestJson(`/api/trials/${encodeURIComponent(datasetId)}`);
+}

@@ -12,6 +12,7 @@ import {
   previewFormula,
   uploadDatasetFile,
 } from "./api.js";
+import { BacktestLabController } from "./backtest_view.js";
 import { initPublicDataModal, renderForensicsPanel } from "./forensics_hub.js";
 import { TVDualChart } from "./tv_chart.js";
 
@@ -23,6 +24,7 @@ const state = {
   activeDatasetName: "Synthetic Panel",
   activeSymbol: null,
   chart: null,
+  btLab: null,
 };
 
 function fmtNum(val, digits = 4) {
@@ -49,6 +51,7 @@ function initThemeAndDensity() {
     applyTheme(next);
     localStorage.setItem("anquantlab_theme", next);
     if (state.chart) state.chart.render();
+    if (state.btLab) state.btLab.renderCurrentChart();
   });
 
   document.getElementById("btn-density-toggle").addEventListener("click", () => {
@@ -78,7 +81,7 @@ function activateSubTab(target) {
     b.classList.toggle("active", active);
     b.setAttribute("aria-selected", active ? "true" : "false");
   });
-  ["editor", "forensics", "metrics", "table"].forEach((id) => {
+  ["editor", "bt-summary", "bt-trades", "forensics", "metrics", "table"].forEach((id) => {
     document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
   });
 }
@@ -96,7 +99,10 @@ function initModeAndSubTabs() {
       ["backtest", "xray", "crashtest"].forEach((id) => {
         document.getElementById(`panel-${id}`).classList.toggle("hidden", id !== target);
       });
-      if (target === "backtest" && state.chart) state.chart.render();
+      if (target === "backtest") {
+        if (state.chart) state.chart.render();
+        if (state.btLab) state.btLab.renderCurrentChart();
+      }
     });
   });
 
@@ -146,6 +152,7 @@ function initResizableDrawer() {
     const newH = Math.max(110, Math.min(window.innerHeight * 0.72, window.innerHeight - ev.clientY));
     drawer.style.height = `${Math.round(newH)}px`;
     if (state.chart) state.chart.render();
+    if (state.btLab) state.btLab.renderCurrentChart();
   });
 
   window.addEventListener("mouseup", () => {
@@ -157,7 +164,10 @@ function initResizableDrawer() {
 
   document.getElementById("btn-toggle-drawer").addEventListener("click", () => {
     drawer.classList.toggle("collapsed");
-    if (state.chart) setTimeout(() => state.chart.render(), 20);
+    setTimeout(() => {
+      if (state.chart) state.chart.render();
+      if (state.btLab) state.btLab.renderCurrentChart();
+    }, 20);
   });
 }
 
@@ -352,6 +362,20 @@ async function loadActiveDatasetPreview() {
   return { preview, forensics };
 }
 
+function syncSymbolSelect(availSyms, activeSym) {
+  const symSel = document.getElementById("symbol-select");
+  symSel.textContent = "";
+  for (const s of availSyms || []) {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s;
+    symSel.appendChild(opt);
+  }
+  state.activeSymbol = activeSym;
+  if (activeSym) symSel.value = activeSym;
+  document.getElementById("legend-symbol").textContent = activeSym || state.activeDatasetId;
+}
+
 async function runFormulaEvaluation() {
   const btn = document.getElementById("btn-evaluate-formula");
   const formula = document.getElementById("formula-input").value.trim();
@@ -368,18 +392,7 @@ async function runFormulaEvaluation() {
       previewLimit: 24,
     });
 
-    const symSel = document.getElementById("symbol-select");
-    symSel.textContent = "";
-    for (const s of res.available_symbols) {
-      const opt = document.createElement("option");
-      opt.value = s;
-      opt.textContent = s;
-      symSel.appendChild(opt);
-    }
-    state.activeSymbol = res.active_symbol;
-    if (res.active_symbol) symSel.value = res.active_symbol;
-
-    document.getElementById("legend-symbol").textContent = res.active_symbol || state.activeDatasetId;
+    syncSymbolSelect(res.available_symbols, res.active_symbol);
     document.getElementById("legend-formula").textContent = res.normalized_formula;
     document.getElementById("cache-badge").textContent = res.cache_hit ? "LRU HIT" : "COMPUTED";
     document.getElementById("editor-latency-hint").textContent = `${res.elapsed_ms.toFixed(2)} ms`;
@@ -420,6 +433,7 @@ async function runFormulaEvaluation() {
 
     renderTable("signal-preview-table", res.sample_rows);
     if (state.chart) state.chart.setData(res.chart_series);
+    if (state.btLab) await state.btLab.executeNow();
   } catch (err) {
     showBanner("formula-error-banner", err.message || String(err));
   } finally {
@@ -466,6 +480,14 @@ async function bootstrap() {
 
   const canvas = document.getElementById("tv-main-canvas");
   state.chart = new TVDualChart(canvas, updateLegendBar);
+  state.btLab = new BacktestLabController({
+    getDatasetId: () => state.activeDatasetId,
+    getFormula: () => document.getElementById("formula-input").value.trim(),
+    getSymbol: () => state.activeSymbol,
+    setSymbolDropdown: syncSymbolSelect,
+    candleChart: state.chart,
+    onError: (msg) => showBanner("formula-error-banner", msg),
+  });
 
   try {
     const [health, catalog] = await Promise.all([fetchHealth(), fetchCatalog()]);

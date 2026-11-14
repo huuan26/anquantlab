@@ -54,9 +54,20 @@ export class TVDualChart {
     this.ctx = canvas.getContext("2d");
     this.onHoverBar = onHoverBar;
     this.series = [];
+    this.tradeMap = new Map();
     this.hoverIdx = null;
     this.mousePos = null;
     this._bindEvents();
+  }
+
+  setTrades(trades) {
+    this.tradeMap = new Map();
+    for (const tr of trades || []) {
+      if (tr.entry_time) {
+        this.tradeMap.set(String(tr.entry_time), tr.side);
+      }
+    }
+    this.render();
   }
 
   _bindEvents() {
@@ -268,6 +279,25 @@ export class TVDualChart {
       const bodyTop = Math.min(yO, yC);
       const bodyH = Math.max(1.2, Math.abs(yC - yO));
       ctx.fillRect(cx - candleW / 2, bodyTop, candleW, bodyH);
+
+      const entrySide = this.tradeMap.get(String(b.t));
+      if (entrySide === "LONG") {
+        ctx.fillStyle = pal.up;
+        ctx.beginPath();
+        ctx.moveTo(cx, yL + 3);
+        ctx.lineTo(cx - 4, yL + 10);
+        ctx.lineTo(cx + 4, yL + 10);
+        ctx.closePath();
+        ctx.fill();
+      } else if (entrySide === "SHORT") {
+        ctx.fillStyle = pal.down;
+        ctx.beginPath();
+        ctx.moveTo(cx, yH - 3);
+        ctx.lineTo(cx - 4, yH - 10);
+        ctx.lineTo(cx + 4, yH - 10);
+        ctx.closePath();
+        ctx.fill();
+      }
     }
 
     // Signal sub-pane line + subtle area
