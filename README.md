@@ -4,6 +4,12 @@ Interactive Quantitative Alpha & Small-Sample Falsification Terminal powered by 
 
 `anquantlab` turns small-sample and free OHLCV data constraints into rigorous econometric guardrails: endogenous zero-orderbook spread estimation, automated dirty-bar and survivorship forensics, a sealed 75/25 Out-of-Sample Holdout Vault, an eigenvalue-adjusted cumulative Session Trial Ledger, 5-Factor Zoo Spanning checks, Romano-Wolf stepdown falsification, and 1-Click standalone `Polars + polars-anta` code generation.
 
+## Interactive Demo Walkthrough
+
+![AnQuantLab English Workbench Demo](docs/anquantlab_demo.webp)
+
+*End-to-end English workbench walkthrough: Interactive Guide & Real Data import notes (Binance / Stooq) -> Case 1 backtest -> No-Trade Buffer sensitivity -> 4-stage Factor X-Ray & 5-Factor Spanning -> Crash-Test suite (2D Sharpe Surface, CSCV PBO, Bootstrap, Romano-Wolf, CUSUM) -> Standalone `Polars + polars-anta` code export.*
+
 ## Key Capabilities
 
 1. **Dynamic 223-Function Catalog & Safe Causal AST DSL**:
