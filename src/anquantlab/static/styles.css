@@ -1239,6 +1239,13 @@ textarea:focus-visible {
   border-top-color: var(--tv-blue);
 }
 
+.tv-ct-stat-card {
+  cursor: default;
+}
+.tv-ct-stat-card:hover {
+  background-color: var(--tv-bg-pane);
+}
+
 .tv-xr-card-hdr {
   display: flex;
   align-items: center;

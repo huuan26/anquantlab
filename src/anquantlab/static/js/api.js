@@ -95,3 +95,11 @@ export async function runXRay(payload) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function runCrashTest(payload) {
+  return requestJson("/api/crashtest/run", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}

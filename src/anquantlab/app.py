@@ -20,6 +20,8 @@ from fastapi.staticfiles import StaticFiles  # noqa: E402
 from . import __version__  # noqa: E402
 from .backtest_lab import BacktestLabEngine  # noqa: E402
 from .catalog import build_catalog  # noqa: E402
+from .crashtest_lab import CrashTestLabEngine  # noqa: E402
+from .crashtest_schemas import CrashTestRunRequest, CrashTestRunResponse  # noqa: E402
 from .expr_dsl import FormulaSyntaxError  # noqa: E402
 from .public_data import HttpGetter, list_public_presets  # noqa: E402
 from .schemas import (  # noqa: E402
@@ -103,6 +105,7 @@ def create_app(
     trial_ledger = TrialLedgerRegistry()
     bt_engine = BacktestLabEngine()
     xray_engine = XRayLabEngine()
+    crashtest_engine = CrashTestLabEngine()
     semaphore = asyncio.Semaphore(cfg.max_concurrent)
 
     app = FastAPI(
@@ -115,6 +118,7 @@ def create_app(
     app.state.trial_ledger = trial_ledger
     app.state.bt_engine = bt_engine
     app.state.xray_engine = xray_engine
+    app.state.crashtest_engine = crashtest_engine
 
     async def _run_guarded(fn: Any, *args: Any) -> Any:
         async with semaphore:
@@ -337,6 +341,21 @@ def create_app(
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except Exception as exc:
             raise HTTPException(status_code=400, detail=f"X-Ray execution error: {exc}") from exc
+
+    @app.post("/api/crashtest/run", response_model=CrashTestRunResponse)
+    async def run_crashtest(req: CrashTestRunRequest) -> CrashTestRunResponse:
+        try:
+            return await _run_guarded(crashtest_engine.run, store, trial_ledger, req)
+        except KeyError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except FormulaSyntaxError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except Exception as exc:
+            raise HTTPException(
+                status_code=400, detail=f"Crash-Test execution error: {exc}"
+            ) from exc
 
     @app.get("/api/trials/{dataset_id}", response_model=TrialLedgerSnapshot)
     async def get_trial_ledger(dataset_id: str) -> TrialLedgerSnapshot:

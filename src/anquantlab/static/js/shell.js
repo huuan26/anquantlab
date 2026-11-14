@@ -13,6 +13,7 @@ import {
   uploadDatasetFile,
 } from "./api.js";
 import { BacktestLabController } from "./backtest_view.js";
+import { CrashTestLabController } from "./crashtest_view.js";
 import { initPublicDataModal, renderForensicsPanel } from "./forensics_hub.js";
 import { TVDualChart } from "./tv_chart.js";
 import { XRayLabController } from "./xray_view.js";
@@ -29,6 +30,7 @@ const state = {
   chart: null,
   btLab: null,
   xrayLab: null,
+  crashtestLab: null,
 };
 
 function fmtNum(val, digits = 4) {
@@ -57,6 +59,7 @@ function initThemeAndDensity() {
     if (state.chart) state.chart.render();
     if (state.btLab) state.btLab.renderCurrentChart();
     if (state.xrayLab) state.xrayLab.renderCurrentChart();
+    if (state.crashtestLab) state.crashtestLab.renderCurrentChart();
   });
 
   document.getElementById("btn-density-toggle").addEventListener("click", () => {
@@ -86,11 +89,18 @@ function activateSubTab(target) {
     b.classList.toggle("active", active);
     b.setAttribute("aria-selected", active ? "true" : "false");
   });
-  ["editor", "bt-summary", "bt-trades", "xray-matrix", "forensics", "metrics", "table"].forEach(
-    (id) => {
-      document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
-    }
-  );
+  [
+    "editor",
+    "bt-summary",
+    "bt-trades",
+    "xray-matrix",
+    "ct-candidates",
+    "forensics",
+    "metrics",
+    "table",
+  ].forEach((id) => {
+    document.getElementById(`subpanel-${id}`).classList.toggle("hidden", id !== target);
+  });
 }
 
 function initModeAndSubTabs() {
@@ -112,6 +122,8 @@ function initModeAndSubTabs() {
         if (state.btLab) state.btLab.renderCurrentChart();
       } else if (target === "xray" && state.xrayLab) {
         state.xrayLab.executeNow();
+      } else if (target === "crashtest" && state.crashtestLab) {
+        state.crashtestLab.executeNow();
       }
     });
   });
@@ -164,6 +176,7 @@ function initResizableDrawer() {
     if (state.chart) state.chart.render();
     if (state.btLab) state.btLab.renderCurrentChart();
     if (state.xrayLab) state.xrayLab.renderCurrentChart();
+    if (state.crashtestLab) state.crashtestLab.renderCurrentChart();
   });
 
   window.addEventListener("mouseup", () => {
@@ -179,6 +192,7 @@ function initResizableDrawer() {
       if (state.chart) state.chart.render();
       if (state.btLab) state.btLab.renderCurrentChart();
       if (state.xrayLab) state.xrayLab.renderCurrentChart();
+      if (state.crashtestLab) state.crashtestLab.renderCurrentChart();
     }, 20);
   });
 }
@@ -449,6 +463,9 @@ async function runFormulaEvaluation() {
     if (state.xrayLab && state.activeTab === "xray") {
       await state.xrayLab.executeNow();
     }
+    if (state.crashtestLab && state.activeTab === "crashtest") {
+      await state.crashtestLab.executeNow();
+    }
   } catch (err) {
     showBanner("formula-error-banner", err.message || String(err));
   } finally {
@@ -517,11 +534,18 @@ async function bootstrap() {
     },
     onError: (msg) => showBanner("formula-error-banner", msg),
   });
+  state.crashtestLab = new CrashTestLabController({
+    getDatasetId: () => state.activeDatasetId,
+    getFormula: () => document.getElementById("formula-input").value.trim(),
+    getHoldoutLocked,
+    onError: (msg) => showBanner("formula-error-banner", msg),
+  });
 
   document.getElementById("btn-holdout-vault").addEventListener("click", () => {
     state.holdoutLocked = !state.holdoutLocked;
     if (state.btLab) state.btLab.scheduleRun(0);
     if (state.xrayLab && state.activeTab === "xray") state.xrayLab.scheduleRun(0);
+    if (state.crashtestLab && state.activeTab === "crashtest") state.crashtestLab.scheduleRun(0);
   });
 
   try {

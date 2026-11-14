@@ -352,18 +352,108 @@
         </div>
       </section>
 
-      <!-- Tab 3: Overfitting Crash-Test Docked Placeholder -->
-      <section id="panel-crashtest" class="tv-placeholder-pane hidden" role="tabpanel" aria-labelledby="tab-btn-crashtest">
-        <div class="tv-wireframe-box">
-          <svg class="tv-icon-lg" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 3l9 4.5v5c0 5-3.8 8.6-9 9.5-5.2-.9-9-4.5-9-9.5v-5L12 3z" />
-            <path d="M9 12l2 2 4-4" />
-          </svg>
-          <h2 class="tv-pane-title">Tab 3: Overfitting &amp; Falsification Crash-Test (Phase 4)</h2>
-          <p class="tv-pane-desc">
-            Multiple-testing crash-test via <code class="mono">polars_anta.inference</code>: 2D divergent parameter-sweep heatmaps,
-            CSCV PBO, Observed vs DSR vs Empirical-Bayes posterior haircut, 7-stage Romano-Wolf stepdown funnel, and CUSUM break test.
-          </p>
+      <!-- Tab 3: Overfitting Crash-Test & Small-Sample Stress Suite -->
+      <section id="panel-crashtest" class="tv-bt-workspace hidden" role="tabpanel" aria-labelledby="tab-btn-crashtest">
+        <aside class="tv-bt-rail" aria-label="Overfitting Crash-Test and Small-Sample Stress Controls">
+          <div class="tv-rail-group">
+            <label for="ct-sweep-mode" class="tv-rail-lbl">2D Perturbation Topology</label>
+            <select id="ct-sweep-mode" class="tv-select tv-rail-select">
+              <option value="auto_2d" selected>Auto AST Lookback 2D Grid</option>
+              <option value="execution_2d">EMA Smooth x No-Trade Buffer</option>
+            </select>
+          </div>
+
+          <div class="tv-rail-row-2">
+            <div>
+              <label for="ct-grid-size" class="tv-rail-lbl">Grid Size</label>
+              <select id="ct-grid-size" class="tv-select tv-rail-select num">
+                <option value="3">3x3 (9)</option>
+                <option value="4">4x4 (16)</option>
+                <option value="5" selected>5x5 (25)</option>
+              </select>
+            </div>
+            <div>
+              <label for="ct-cscv-splits" class="tv-rail-lbl">CSCV Splits</label>
+              <select id="ct-cscv-splits" class="tv-select tv-rail-select num">
+                <option value="8">8 Blocks</option>
+                <option value="10">10 Blocks</option>
+                <option value="12" selected>12 Blocks</option>
+                <option value="16">16 Blocks</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tv-rail-row-2">
+            <div>
+              <label for="ct-weight-select" class="tv-rail-lbl">Weighting</label>
+              <select id="ct-weight-select" class="tv-select tv-rail-select">
+                <option value="dollar_neutral" selected>Dollar Neutral</option>
+                <option value="long_only">Long Only</option>
+                <option value="equal_weight">Equal Weight</option>
+                <option value="raw">Raw Signal</option>
+              </select>
+            </div>
+            <div>
+              <label for="ct-slip-mode" class="tv-rail-lbl">Slippage</label>
+              <select id="ct-slip-mode" class="tv-select tv-rail-select">
+                <option value="corwin_schultz" selected>CS Half-Spread</option>
+                <option value="fixed">Fixed 5 bps</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="ct-fee-slider">Commission (1-Way)</label>
+              <output id="ct-fee-val" class="num">5.0 bps</output>
+            </div>
+            <input id="ct-fee-slider" type="range" min="0" max="50" step="0.5" value="5" class="tv-range" />
+          </div>
+
+          <div class="tv-slider-block">
+            <div class="tv-slider-hdr">
+              <label for="ct-delist-slider" title="Annualized survivorship/delisting return drag applied to gross long exposure on free datasets">Survivorship Delist Drag</label>
+              <output id="ct-delist-val" class="num">OFF (0)</output>
+            </div>
+            <input id="ct-delist-slider" type="range" min="0" max="400" step="25" value="0" class="tv-range" />
+          </div>
+
+          <div class="tv-rail-group">
+            <label for="ct-boot-select" class="tv-rail-lbl">Stationary &amp; Null Worlds</label>
+            <select id="ct-boot-select" class="tv-select tv-rail-select num">
+              <option value="100">100 Synthetic Worlds</option>
+              <option value="200" selected>200 Synthetic Worlds</option>
+              <option value="400">400 Synthetic Worlds</option>
+            </select>
+          </div>
+
+          <button id="btn-ct-run" type="button" class="tv-btn-primary tv-rail-action" title="Run 2D Sweep, CSCV PBO, Romano-Wolf &amp; Stationary Bootstrap">
+            <span>Run Crash-Test</span>
+          </button>
+
+          <div id="ct-rail-latency" class="tv-rail-footer num">-- ms</div>
+        </aside>
+
+        <div class="tv-xr-main">
+          <div id="ct-summary-strip" class="tv-xr-stage-strip" aria-label="Crash-Test Summary Strip"></div>
+
+          <div class="tv-xr-toolbar">
+            <div class="tv-xr-formula-bar">
+              <span class="tv-legend-ind-tag">Tested Expr</span>
+              <code id="ct-formula-code" class="tv-xr-code mono">cs_rank(rsi(close, 14))</code>
+            </div>
+            <div class="tv-xr-toolbar-right">
+              <span id="ct-verdict-banner" class="tv-xr-verdict num">Falsification Verdict --</span>
+              <div class="tv-seg-group">
+                <button id="btn-ct-bl-boot" type="button" class="tv-seg-btn active">Bootstrap &amp; Null</button>
+                <button id="btn-ct-bl-cusum" type="button" class="tv-seg-btn">CUSUM Break</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="tv-canvas-wrap">
+            <canvas id="tv-crashtest-canvas" aria-label="4-Quadrant Overfitting Crash-Test, CSCV PBO, Stationary Bootstrap and Romano-Wolf Canvas"></canvas>
+          </div>
         </div>
       </section>
     </main>
@@ -387,6 +477,10 @@
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="xray-matrix">
             X-Ray &amp; Spanning Matrix
+          </button>
+          <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="ct-candidates">
+            <span>Crash-Test (RW &amp; EB)</span>
+            <span id="ct-surv-badge" class="tv-inline-badge num">--</span>
           </button>
           <button type="button" role="tab" aria-selected="false" class="tv-subtab" data-subtab="forensics">
             <span>Forensics &amp; Spread Audit</span>
@@ -517,6 +611,31 @@
               </tr>
             </thead>
             <tbody id="xr-spanning-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sub-View 1.45: Crash-Test Grid Candidates (Romano-Wolf Stepdown & Empirical-Bayes) -->
+      <div id="subpanel-ct-candidates" class="tv-subpanel tv-table-pane hidden">
+        <div class="tv-table-scroll">
+          <table class="tv-table num">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Grid Parameter Spec</th>
+                <th>Net SR</th>
+                <th>Net Return</th>
+                <th>NW t-stat</th>
+                <th>Raw p</th>
+                <th>BH-FDR q</th>
+                <th>Romano-Wolf p</th>
+                <th>EB Post SR</th>
+                <th>EB P(SR&gt;0)</th>
+                <th>CUSUM p</th>
+                <th>7-Gate Verdict</th>
+              </tr>
+            </thead>
+            <tbody id="ct-candidates-tbody"></tbody>
           </table>
         </div>
       </div>
