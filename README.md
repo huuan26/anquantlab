@@ -4,7 +4,7 @@ Interactive Quantitative Alpha & Small-Sample Falsification Terminal powered by 
 
 `anquantlab` turns small-sample and free OHLCV data constraints into rigorous econometric guardrails: endogenous zero-orderbook spread estimation, automated dirty-bar and survivorship forensics, a sealed 75/25 Out-of-Sample Holdout Vault, an eigenvalue-adjusted cumulative Session Trial Ledger, 5-Factor Zoo Spanning checks, Romano-Wolf stepdown falsification, and 1-Click standalone `Polars + polars-anta` code generation.
 
-**Live Web App (No Setup Required):** [http://103.57.223.106:8506/](http://103.57.223.106:8506/)
+**Live Web App:** [http://103.57.223.106:8506/](http://103.57.223.106:8506/)
 
 ## Interactive Demo Walkthrough
 
